@@ -91,7 +91,7 @@ contract UniswapBasic {
 }
 
 
-contract UniswapSharedLiquidity is UniswapBasic {
+contract UniswapMultipleProviders is UniswapBasic {
     using SafeMath for uint256;
 
     event Investment(address indexed liquidityProvider, uint256 indexed investedEth, uint256 indexed investedTokens);
@@ -101,7 +101,7 @@ contract UniswapSharedLiquidity is UniswapBasic {
     mapping(address => uint256) divestedEthBalance;
     mapping(address => uint256) divestedTokenBalance;
 
-    function uniswapSharedLiquidity(address _tokenAddress) public {
+    function UniswapMultipleProviders(address _tokenAddress) public {
         tokenAddress = _tokenAddress;
         token = ERC20Token(tokenAddress);
     }
