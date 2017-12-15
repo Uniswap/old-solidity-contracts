@@ -10,7 +10,7 @@ $ pip3 install --upgrade pip
 $ pip3 install virtualenv
 ```
 
-2) Clone repository (requies [Homebrew](https://brew.sh/))
+2) Clone repository
 ```
 $ git clone https://gitlab.com/haydena/automated-market-maker.git
 $ cd automated-market-maker
