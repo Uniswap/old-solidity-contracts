@@ -1,9 +1,8 @@
 import pytest
-import math
 from ethereum import utils as u
 
 """
-    run test with:     python3.6 -m pytest
+    run test with:     python3.6 -m pytest -v
 """
 
 ETH = 10**18
@@ -15,28 +14,20 @@ def uni_token(t, contract_tester):
 
 @pytest.fixture
 def uniswap_multi(t, contract_tester, uni_token):
-    return contract_tester('Exchange/UniswapMultipleProviders.sol', args=[uni_token.address])
-
-def test_token(t, uni_token, contract_tester, assert_tx_failed):
-    TOKEN_BALANCE_A1 = 100*10**12
-    TOKEN_BALANCE_A2 = 200*10**12
-    # Test Initial State
-    assert uni_token.name().decode("utf-8") == 'UNI Test Token'
-    assert uni_token.symbol().decode("utf-8") == 'UNI'
-    assert uni_token.decimals() == 12
-    # Mint tokens
-    uni_token.mint(t.a1, TOKEN_BALANCE_A1)
-    assert uni_token.balanceOf(t.a1) == TOKEN_BALANCE_A1
+    return contract_tester('Exchange/UniswapLiquidityProviders.sol', args=[uni_token.address])
 
 def test_exchange_initial_state(t, uni_token, uniswap_multi, contract_tester, assert_tx_failed):
     start_time = t.s.head_state.timestamp
     # Mine block
     t.s.mine()
-    assert uniswap_multi.invariant() == 0
+    assert uniswap_multi.FEE_RATE() == 500
     assert uniswap_multi.ethInMarket() == 0
     assert uniswap_multi.tokensInMarket() == 0
-    assert uniswap_multi.totalShares() == 0
+    assert uniswap_multi.invariant() == 0
+    assert uniswap_multi.ethFeePool() == 0
+    assert uniswap_multi.tokenFeePool() == 0
     assert u.remove_0x_head(uniswap_multi.tokenAddress()) == uni_token.address.hex()
+    assert uniswap_multi.totalShares() == 0
     assert uniswap_multi.lastFeeDistribution() == start_time
 
 def test_initialize_exchange(t, uni_token, uniswap_multi, contract_tester, assert_tx_failed):
@@ -71,10 +62,10 @@ def test_eth_to_tokens(t, uni_token, uniswap_multi, contract_tester, assert_tx_f
     # Buy Tokens
     uniswap_multi.ethToTokens(1, timeout, value=1*ETH, sender=t.k2)
     fee = 1*ETH/500
-    assert uniswap_multi.feePool() == fee
+    assert uniswap_multi.ethFeePool() == fee
     new_market_eth = 5*ETH + 1*ETH - fee
     assert uniswap_multi.ethInMarket() == new_market_eth
-    # Contract ETH balance = eth in market + fee pool
+    # Contract ETH balance = eth in market + fee
     assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth + fee
     new_market_tokens = int(INVARIANT/new_market_eth)
     assert uniswap_multi.tokensInMarket() == new_market_tokens
@@ -105,23 +96,26 @@ def test_tokens_to_eth(t, uni_token, uniswap_multi, contract_tester, assert_tx_f
     uniswap_multi.initializeExchange(10*TOKEN, value=5*ETH, sender=t.k1)
     timeout = t.s.head_state.timestamp + 300
     INVARIANT = 5*ETH*10*TOKEN
-    # Starting Balances of buyer address
+    # Starting balances of buyer address
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000
     assert uni_token.balanceOf(t.a2) == 2*TOKEN
     # Buy ETH
     uniswap_multi.tokenToEth(2*TOKEN, 1, timeout, sender=t.k2)
-    new_market_tokens = 10*TOKEN + 2*TOKEN
+    fee = 2*TOKEN/500;
+    assert uniswap_multi.tokenFeePool() == fee
+    new_market_tokens = 10*TOKEN + 2*TOKEN - fee;
     assert uniswap_multi.tokensInMarket() == new_market_tokens
-    assert uni_token.balanceOf(uniswap_multi.address) == new_market_tokens
+    # Contract token balance = tokens in market + fee
+    assert uni_token.balanceOf(uniswap_multi.address) == new_market_tokens + fee
     new_market_eth = int(INVARIANT/new_market_tokens)
-    assert uniswap_multi.ethInMarket() == new_market_eth + 170    # 170 wei rounding difference
-    assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth + 170  # 170 wei rounding difference
+    # this TX has a rounding error of 429
+    rounding_error = 429
+    assert uniswap_multi.ethInMarket() == new_market_eth - rounding_error
+    # Contract ETH balance = ETH in market
+    assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth - rounding_error
     purchased_eth = 5*ETH - new_market_eth
-    fee = int(purchased_eth/500)
-    assert uniswap_multi.feePool() == fee - 1     # 1 wei rounding difference
-    eth_to_buyer = purchased_eth - fee
-    # Final Balances of buyer address
-    assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 + eth_to_buyer + 1666666666666497  # LARGE rounding error of 1666666666666497
+    # Final Balances of buyer address = starting balance + purchased eth
+    assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 + purchased_eth + rounding_error
     assert uni_token.balanceOf(t.a2) == 0
     # Tokens sold = 0
     assert_tx_failed(t, lambda: uniswap_multi.tokenToEth(0, 1, timeout, sender=t.k2))
