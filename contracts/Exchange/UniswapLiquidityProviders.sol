@@ -11,6 +11,7 @@ library SafeMath {
         return c;
     }
 
+
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
         // assert(b > 0); // Solidity automatically throws when dividing by 0
         uint256 c = a / b;
@@ -18,10 +19,12 @@ library SafeMath {
         return c;
     }
 
+
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
         assert(b <= a);
         return a - b;
     }
+
 
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a + b;
@@ -49,25 +52,26 @@ contract UniswapBasic {
     event TokenPurchase(address indexed buyer, uint256 tokensPurchased, uint256 ethSpent);
     event EthPurchase(address indexed buyer, uint256 ethPurchased, uint256 tokensSpent);
 
-    uint public constant feeRate = 500;        //fee is 1/feeRate = 0.2%
+    uint public constant FEE_RATE = 500;        //fee is 1/feeRate = 0.2%
 
     uint256 public ethInMarket;
     uint256 public tokensInMarket;
     uint256 public invariant;
-    uint256 public feePool;
+    uint256 public ethFeePool;
+    uint256 public tokenFeePool;
     address public tokenAddress;
     ERC20Token token;
 
-    function ethToTokens(uint256 minimumTokens, uint256 timeout) public payable {
+    function ethToTokens(uint256 minTokens, uint256 timeout) public payable {
         require(invariant > 0);
-        require(msg.value != 0 && minimumTokens != 0 && now < timeout);
-        uint256 fee = msg.value.div(feeRate);
+        require(msg.value != 0 && minTokens != 0 && now < timeout);
+        uint256 fee = msg.value.div(FEE_RATE);
         uint256 ethSold = msg.value.sub(fee);
         uint256 newEthInMarket = ethInMarket.add(ethSold);
         uint256 newTokensInMarket = invariant.div(newEthInMarket);
         uint256 purchasedTokens = tokensInMarket.sub(newTokensInMarket);
-        require(purchasedTokens >= minimumTokens && purchasedTokens <= tokensInMarket);
-        feePool = feePool.add(fee);
+        require(purchasedTokens >= minTokens && purchasedTokens <= tokensInMarket);
+        ethFeePool = ethFeePool.add(fee);
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
         TokenPurchase(msg.sender, purchasedTokens, ethSold);
@@ -77,13 +81,13 @@ contract UniswapBasic {
 
     function fallbackEthToTokens(address buyer, uint256 value) internal {
         require(invariant > 0);
-        uint256 fee = value.div(feeRate);
+        uint256 fee = value.div(FEE_RATE);
         uint256 ethSold = value.sub(fee);
         uint256 newEthInMarket = ethInMarket.add(ethSold);
         uint256 newTokensInMarket = invariant.div(newEthInMarket);
         uint256 purchasedTokens = tokensInMarket.sub(newTokensInMarket);
         require(purchasedTokens <= tokensInMarket.div(10)); //cannot buy more than 10% of tokens through fallback function
-        feePool = feePool.add(fee);
+        ethFeePool = ethFeePool.add(fee);
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
         TokenPurchase(buyer, purchasedTokens, ethSold);
@@ -91,26 +95,26 @@ contract UniswapBasic {
     }
 
 
-    function tokenToEth(uint256 tokensSold, uint256 minimumEth, uint256 timeout) public {
+    function tokenToEth(uint256 tokens, uint256 minEth, uint256 timeout) public {
         require(invariant > 0);
-        require(tokensSold !=0 && minimumEth != 0 && now < timeout);
+        require(tokens !=0 && minEth != 0 && now < timeout);
+        uint256 fee = tokens.div(FEE_RATE);
+        uint256 tokensSold = tokens.sub(fee);
         uint256 newTokensInMarket = tokensInMarket.add(tokensSold);
         uint256 newEthInMarket = invariant.div(newTokensInMarket);
         uint256 purchasedEth = ethInMarket.sub(newEthInMarket);
-        uint256 fee = purchasedEth.div(feeRate);
-        uint256 ethToBuyer = purchasedEth.sub(fee);
-        require(ethToBuyer >= minimumEth && purchasedEth <= ethInMarket);
-        feePool = feePool.add(fee);
+        require(purchasedEth >= minEth && purchasedEth <= ethInMarket);
+        tokenFeePool = tokenFeePool.add(fee);
         tokensInMarket = newTokensInMarket;
         ethInMarket = newEthInMarket;
         EthPurchase(msg.sender, purchasedEth, tokensSold);
         msg.sender.transfer(purchasedEth);
-        token.transferFrom(msg.sender, address(this), tokensSold);
+        token.transferFrom(msg.sender, address(this), tokens);
     }
 }
 
 
-contract UniswapMultipleProviders is UniswapBasic {
+contract UniswapLiquidityProviders is UniswapBasic {
     using SafeMath for uint256;
 
     event Investment(address indexed liquidityProvider, uint256 indexed sharesPurchased);
@@ -122,8 +126,6 @@ contract UniswapMultipleProviders is UniswapBasic {
     mapping(address => uint256) divestedEthBalance;
     mapping(address => uint256) divestedTokenBalance;
     mapping(address => uint256) feeBalance;
-    mapping(address => bool) isInvestor;
-    address[] investors;
 
     modifier waitingPeriod() {
         uint lockoutEnd = lastFeeDistribution.add(1 weeks);
@@ -131,7 +133,7 @@ contract UniswapMultipleProviders is UniswapBasic {
         _;
     }
 
-    function UniswapMultipleProviders(address _tokenAddress) public {
+    function UniswapLiquidityProviders(address _tokenAddress) public {
         tokenAddress = _tokenAddress;
         token = ERC20Token(tokenAddress);
         lastFeeDistribution = now;
@@ -143,10 +145,12 @@ contract UniswapMultipleProviders is UniswapBasic {
         fallbackEthToTokens(msg.sender, msg.value);
     }
 
+
     // Needs work - numbers are somewhat arbitrary right now
     function initializeExchange(uint256 tokenAmount) external payable {
         require(invariant == 0 && totalShares == 0);
-        require(msg.value >= 1000000 && tokenAmount >= 1000000);
+        // Prevents share cost from being too high or too low - potentially needs work
+        require(msg.value >= 10000 && tokenAmount >= 10000 && msg.value <= 5*10**18);
         ethInMarket = msg.value;
         tokensInMarket = tokenAmount;
         invariant = ethInMarket.mul(tokensInMarket);
@@ -168,16 +172,13 @@ contract UniswapMultipleProviders is UniswapBasic {
         ethInMarket = ethInMarket.add(msg.value);
         tokensInMarket = tokensInMarket.add(tokensRequired);
         invariant = ethInMarket.mul(tokensInMarket);
-        if(isInvestor[msg.sender] == false) {
-            isInvestor[msg.sender] == true;
-            investors.push(msg.sender);
-        }
         Investment(msg.sender, sharesPurchased);
         token.transferFrom(msg.sender, address(this), tokensRequired);
     }
 
 
     function divestLiquidity(uint256 sharesSold) external {
+        require(liquidityShares[msg.sender] >= sharesSold && sharesSold > 0);
         liquidityShares[msg.sender] = liquidityShares[msg.sender].sub(sharesSold);
         uint256 weiPerShare = ethInMarket.div(totalShares);
         uint256 tokensPerShare = tokensInMarket.div(totalShares);
@@ -188,7 +189,12 @@ contract UniswapMultipleProviders is UniswapBasic {
         divestedTokenBalance[msg.sender] = divestedEthBalance[msg.sender].add(tokensDivested);
         ethInMarket = ethInMarket.sub(weiDivested);
         tokensInMarket = tokensInMarket.sub(tokensDivested);
-        invariant = ethInMarket.mul(tokensInMarket);
+        if(sharesSold == totalShares) {
+            invariant == 0;
+        }
+        else {
+            invariant = ethInMarket.mul(tokensInMarket);
+        }
         Divestment(msg.sender, sharesSold);
     }
 
@@ -220,15 +226,16 @@ contract UniswapMultipleProviders is UniswapBasic {
     }
 
 
-    // Needs to be replaced
-    // https://medium.com/@weka/dividend-bearing-tokens-on-ethereum-42d01c710657
-    function distributeFees() public waitingPeriod {
-        for (uint i = 0; i < investors.length; i++) {
-          address investor = investors[i];
-          uint256 newFees = feePool * (liquidityShares[investor] / totalShares);
-          feeBalance[investor] = feeBalance[investor].add(newFees);
-        }
-
+    // Add fees to market, increasing value of all shares
+    function addFeesToMarket() public waitingPeriod {
+        require(ethFeePool != 0 || tokenFeePool != 0);
+        uint256 ethFees = ethFeePool;
+        uint256 tokenFees = tokenFeePool;
+        ethFeePool = 0;
+        tokenFeePool = 0;
         lastFeeDistribution = now;
+        ethInMarket = ethInMarket.add(ethFees);
+        tokensInMarket = tokensInMarket.add(tokenFees);
+        invariant = ethInMarket.mul(tokensInMarket);
     }
 }

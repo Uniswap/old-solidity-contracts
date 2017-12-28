@@ -18,6 +18,7 @@ library SafeMath {
         return c;
     }
 
+
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
         // assert(b > 0); // Solidity automatically throws when dividing by 0
         uint256 c = a / b;
@@ -25,10 +26,12 @@ library SafeMath {
         return c;
     }
 
+
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
         assert(b <= a);
         return a - b;
     }
+
 
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a + b;
@@ -36,6 +39,7 @@ library SafeMath {
         return c;
     }
 }
+
 
 contract StandardToken is ERC20Token {
     using SafeMath for uint256;
@@ -54,6 +58,7 @@ contract StandardToken is ERC20Token {
         return true;
     }
 
+
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         require(_to != address(0));
         require(_value <= balances[_from]);
@@ -66,21 +71,25 @@ contract StandardToken is ERC20Token {
         return true;
     }
 
+
     function approve(address _spender, uint256 _value) public returns (bool) {
         allowed[msg.sender][_spender] = _value;
         Approval(msg.sender, _spender, _value);
         return true;
     }
 
+
     function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
         return allowed[_owner][_spender];
     }
+
 
     function increaseApproval (address _spender, uint _addedValue) public returns (bool success) {
         allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
         Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
+
 
     function decreaseApproval (address _spender, uint _subtractedValue) public returns (bool success) {
         uint oldValue = allowed[msg.sender][_spender];
@@ -93,10 +102,12 @@ contract StandardToken is ERC20Token {
         return true;
     }
 
+
     function balanceOf(address _owner) public constant returns (uint256 balance) {
         return balances[_owner];
     }
 }
+
 
 contract Ownable {
 
@@ -121,6 +132,7 @@ contract Ownable {
     }
 }
 
+
 contract MintableToken is StandardToken, Ownable {
     event Mint(address indexed to, uint256 amount);
     event MintFinished();
@@ -131,6 +143,7 @@ contract MintableToken is StandardToken, Ownable {
         require(!mintingFinished);
         _;
     }
+
 
     /**
     * @dev Function to mint tokens
@@ -146,6 +159,7 @@ contract MintableToken is StandardToken, Ownable {
         return true;
     }
 
+
     /**
     * @dev Function to stop minting new tokens.
     * @return True if the operation was successful.
@@ -156,6 +170,7 @@ contract MintableToken is StandardToken, Ownable {
         return true;
     }
 }
+
 
 contract UniToken is MintableToken {
     string public constant name = "UNI Test Token";
