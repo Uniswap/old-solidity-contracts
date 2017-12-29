@@ -39,3 +39,26 @@ $ python3 setup.py install
 $ cd test/uniswap_exchange/
 $ pytest
 ```
+
+
+### Roadmap:
+
+Aproximate dev roadmap - some things will be worked on in parallel and the order could change
+
+1) Smart Contract - add system for shared liquidity providers and fee payouts - COMPLETE
+
+2) Python testing - IN PROGRESS
+
+3) Smart Contract - Exchange Registry - IN PROGRESS
+
+4) Frontend - begin work 
+
+5) Switch liquidity shares to ERC20 tokens?
+
+6) Finish setting up ENS
+
+7) Smart Contract - Tunelling/Token-to-Token transfers
+
+8) Testnet/formal audit
+
+other stuff: social media/awareness push 
