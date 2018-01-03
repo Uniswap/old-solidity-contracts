@@ -1,6 +1,7 @@
 import pytest
 from ethereum import utils as u
 import json
+import os
 
 """
     run test with:     python3.6 -m pytest -v
@@ -8,6 +9,7 @@ import json
 
 ETH = 10**18
 TOKEN = 10**12
+EXCHANGE_ABI = os.path.join(os.path.dirname(__file__), '../ABI/exchangeABI.json')
 
 @pytest.fixture
 def uni_token(t, contract_tester):
@@ -29,7 +31,7 @@ def test_uniswap_factory(t, uni_token, swap_token, uniswap_factory, contract_tes
     assert uniswap_factory.getExchangeCount() == 1
     assert uniswap_factory.doesExchangeExist(uni_token.address) == True
     assert uni_exchange_address == uniswap_factory.tokenExchangeLookup(uni_token.address)
-    abi = json.load(open('exchangeABI.json'))
+    abi = json.load(open(EXCHANGE_ABI))
     uni_token_exchange = t.ABIContract(t.s, abi, uni_exchange_address)
     # Test UNI token exchange initial state
     assert uni_token_exchange.FEE_RATE() == 500
