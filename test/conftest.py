@@ -20,6 +20,7 @@ def t():
 @pytest.fixture
 def contract_tester(t):
     def create_contract(path, args=None, sender=t.k0):
+        t.s.mine();
         contract_name = path.split('/')[1]
         contract_name += ':' + contract_name.split('.')[0]
         path, extra_args = get_dirs(path)
