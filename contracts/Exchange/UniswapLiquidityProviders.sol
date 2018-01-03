@@ -62,6 +62,13 @@ contract UniswapBasic {
     address public tokenAddress;
     ERC20Token token;
 
+    function() public payable {
+        require(msg.value != 0);
+        uint256 time = now + 300;
+        fallbackEthToTokens(msg.sender, msg.value, time);
+    }
+
+
     function ethToTokens(uint256 minTokens, uint256 timeout) public payable {
         require(invariant > 0);
         require(msg.value != 0 && minTokens != 0 && now < timeout);
@@ -79,14 +86,16 @@ contract UniswapBasic {
     }
 
 
-    function fallbackEthToTokens(address buyer, uint256 value) internal {
+    function fallbackEthToTokens(address buyer, uint256 value, uint256 timeout) public payable {
         require(invariant > 0);
+        require(value != 0 && now < timeout);
         uint256 fee = value.div(FEE_RATE);
         uint256 ethSold = value.sub(fee);
         uint256 newEthInMarket = ethInMarket.add(ethSold);
         uint256 newTokensInMarket = invariant.div(newEthInMarket);
         uint256 purchasedTokens = tokensInMarket.sub(newTokensInMarket);
-        require(purchasedTokens <= tokensInMarket.div(10)); //cannot buy more than 10% of tokens through fallback function
+        uint256 maxTokens = tokensInMarket.div(5); // Can't purchase more than 20% of tokens using fallback
+        require(purchasedTokens > 0 && purchasedTokens <= maxTokens);
         ethFeePool = ethFeePool.add(fee);
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
@@ -95,11 +104,11 @@ contract UniswapBasic {
     }
 
 
-    function tokenToEth(uint256 tokens, uint256 minEth, uint256 timeout) public {
+    function tokenToEth(uint256 tokenAmount, uint256 minEth, uint256 timeout) public {
         require(invariant > 0);
-        require(tokens !=0 && minEth != 0 && now < timeout);
-        uint256 fee = tokens.div(FEE_RATE);
-        uint256 tokensSold = tokens.sub(fee);
+        require(tokenAmount !=0 && minEth != 0 && now < timeout);
+        uint256 fee = tokenAmount.div(FEE_RATE);
+        uint256 tokensSold = tokenAmount.sub(fee);
         uint256 newTokensInMarket = tokensInMarket.add(tokensSold);
         uint256 newEthInMarket = invariant.div(newTokensInMarket);
         uint256 purchasedEth = ethInMarket.sub(newEthInMarket);
@@ -109,7 +118,7 @@ contract UniswapBasic {
         ethInMarket = newEthInMarket;
         EthPurchase(msg.sender, purchasedEth, tokensSold);
         msg.sender.transfer(purchasedEth);
-        token.transferFrom(msg.sender, address(this), tokens);
+        token.transferFrom(msg.sender, address(this), tokenAmount);
     }
 }
 
@@ -137,12 +146,6 @@ contract UniswapLiquidityProviders is UniswapBasic {
         tokenAddress = _tokenAddress;
         token = ERC20Token(tokenAddress);
         lastFeeDistribution = now;
-    }
-
-
-    function() public payable {
-        require(msg.value != 0);
-        fallbackEthToTokens(msg.sender, msg.value);
     }
 
 
