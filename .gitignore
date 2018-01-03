@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+.cache
+uniswap_python_environment/
+pyethereum/
