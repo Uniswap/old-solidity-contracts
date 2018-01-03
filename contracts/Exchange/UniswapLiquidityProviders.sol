@@ -62,6 +62,12 @@ contract UniswapBasic {
     address public tokenAddress;
     ERC20Token token;
 
+    function UniswapBasic(address _tokenAddress) public {
+        tokenAddress = _tokenAddress;
+        token = ERC20Token(tokenAddress);
+    }
+
+
     function() public payable {
         require(msg.value != 0);
         uint256 time = now + 300;
@@ -142,9 +148,9 @@ contract UniswapLiquidityProviders is UniswapBasic {
         _;
     }
 
-    function UniswapLiquidityProviders(address _tokenAddress) public {
-        tokenAddress = _tokenAddress;
-        token = ERC20Token(tokenAddress);
+    function UniswapLiquidityProviders(address _tokenAddress) public
+        UniswapBasic(_tokenAddress)
+    {
         lastFeeDistribution = now;
     }
 
