@@ -5,6 +5,7 @@ from ethereum import utils as u
     run test with:     python3.6 -m pytest -v
 """
 
+# Constants
 ETH = 10**18
 TOKEN = 10**12
 
@@ -18,7 +19,6 @@ def uniswap_multi(t, contract_tester, uni_token):
 
 def test_exchange_initial_state(t, uni_token, uniswap_multi, contract_tester, assert_tx_failed):
     start_time = t.s.head_state.timestamp
-    # Mine block
     assert uniswap_multi.FEE_RATE() == 500
     assert uniswap_multi.ethInMarket() == 0
     assert uniswap_multi.tokensInMarket() == 0
@@ -34,14 +34,14 @@ def test_initialize_exchange(t, uni_token, uniswap_multi, contract_tester, asser
     uni_token.approve(uniswap_multi.address, 10*TOKEN, sender=t.k1)
     # Assert starting ETH balance of test account
     assert t.s.head_state.get_balance(t.a1) == 1000000000000000000000000000000
-    # Initialize exchange
+    # PROVIDER initializes exchange
     uniswap_multi.initializeExchange(10*TOKEN, value=5*ETH, sender=t.k1)
+    # Updated state of UNI exchange
     assert uniswap_multi.invariant() == 10*TOKEN*5*ETH
     assert uniswap_multi.ethInMarket() == 5*ETH
     assert uniswap_multi.tokensInMarket() == 10*TOKEN
     assert uni_token.balanceOf(uniswap_multi.address) == 10*TOKEN
     assert uniswap_multi.totalShares() == 1000
-    # Assert final token balance of test account
     assert t.s.head_state.get_balance(uniswap_multi.address) == 5*ETH
     # Assert final ETH balance of test account
     assert t.s.head_state.get_balance(t.a1) == 1000000000000000000000000000000 - 5*ETH
@@ -49,27 +49,26 @@ def test_initialize_exchange(t, uni_token, uniswap_multi, contract_tester, asser
 def test_eth_to_tokens(t, uni_token, uniswap_multi, contract_tester, assert_tx_failed):
     uni_token.mint(t.a1, 10*TOKEN)
     uni_token.approve(uniswap_multi.address, 10*TOKEN, sender=t.k1)
-    # Initialize exchange
+    # PROVIDER initializes exchange
     uniswap_multi.initializeExchange(10*TOKEN, value=5*ETH, sender=t.k1)
     timeout = t.s.head_state.timestamp + 300
-    INVARIANT = 5*ETH*10*TOKEN
-    # Starting Balances of buyer address
+    # Starting balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000
     assert uni_token.balanceOf(t.a2) == 0
-    # Buy Tokens
+    # BUYER converts ETH to UNI
     uniswap_multi.ethToTokens(1, timeout, value=1*ETH, sender=t.k2)
+    INVARIANT = 5*ETH*10*TOKEN
     fee = 1*ETH/500
-    assert uniswap_multi.ethFeePool() == fee
     new_market_eth = 5*ETH + 1*ETH - fee
-    assert uniswap_multi.ethInMarket() == new_market_eth
-    # Contract ETH balance = eth in market + fee
-    assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth + fee
     new_market_tokens = int(INVARIANT/new_market_eth)
-    assert uniswap_multi.tokensInMarket() == new_market_tokens
-    # Contract Token balance = tokens in market
-    assert uni_token.balanceOf(uniswap_multi.address) == new_market_tokens
     purchased_tokens = 10*TOKEN - new_market_tokens
-    # Final Balances of buyer address
+    # Updated balances of UNI exchange
+    assert uniswap_multi.ethFeePool() == fee
+    assert uniswap_multi.ethInMarket() == new_market_eth
+    assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth + fee
+    assert uniswap_multi.tokensInMarket() == new_market_tokens
+    assert uni_token.balanceOf(uniswap_multi.address) == new_market_tokens
+    # Final balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
     assert uni_token.balanceOf(t.a2) == purchased_tokens
     # Min tokens = 0
@@ -89,30 +88,28 @@ def test_tokens_to_eth(t, uni_token, uniswap_multi, contract_tester, assert_tx_f
     uni_token.mint(t.a2, 2*TOKEN)
     uni_token.approve(uniswap_multi.address, 10*TOKEN, sender=t.k1)
     uni_token.approve(uniswap_multi.address, 2*TOKEN, sender=t.k2)
-    # Initialize exchange
+    # PROVIDER initializes exchange
     uniswap_multi.initializeExchange(10*TOKEN, value=5*ETH, sender=t.k1)
     timeout = t.s.head_state.timestamp + 300
     INVARIANT = 5*ETH*10*TOKEN
-    # Starting balances of buyer address
+    # Starting balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000
     assert uni_token.balanceOf(t.a2) == 2*TOKEN
-    # Buy ETH
+    # BUYER converts UNI to ETH
     uniswap_multi.tokenToEth(2*TOKEN, 1, timeout, sender=t.k2)
+    # UNI exchange state changes
     fee = 2*TOKEN/500;
-    assert uniswap_multi.tokenFeePool() == fee
-    new_market_tokens = 10*TOKEN + 2*TOKEN - fee;
-    assert uniswap_multi.tokensInMarket() == new_market_tokens
-    # Contract token balance = tokens in market + fee
-    assert uni_token.balanceOf(uniswap_multi.address) == new_market_tokens + fee
+    new_market_tokens = 10*TOKEN + 2*TOKEN - fee
     new_market_eth = int(INVARIANT/new_market_tokens)
-    # this TX has a rounding error of 429
-    rounding_error = 429
-    assert uniswap_multi.ethInMarket() == new_market_eth - rounding_error
-    # Contract ETH balance = ETH in market
-    assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth - rounding_error
     purchased_eth = 5*ETH - new_market_eth
-    # Final Balances of buyer address = starting balance + purchased eth
-    assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 + purchased_eth + rounding_error
+    # Updated balances of UNI exchange
+    assert uniswap_multi.tokenFeePool() == fee
+    assert uniswap_multi.tokensInMarket() == new_market_tokens
+    assert uni_token.balanceOf(uniswap_multi.address) == new_market_tokens + fee
+    assert uniswap_multi.ethInMarket() == new_market_eth - 429         # rounding error of 429 wei
+    assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth - 429
+    # Final balances of BUYER
+    assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 + purchased_eth + 429
     assert uni_token.balanceOf(t.a2) == 0
     # Tokens sold = 0
     assert_tx_failed(t, lambda: uniswap_multi.tokenToEth(0, 1, timeout, sender=t.k2))
@@ -130,29 +127,28 @@ def test_tokens_to_eth(t, uni_token, uniswap_multi, contract_tester, assert_tx_f
 def test_fallback_eth_to_tokens(t, uni_token, uniswap_multi, contract_tester, assert_tx_failed):
     uni_token.mint(t.a1, 10*TOKEN)
     uni_token.approve(uniswap_multi.address, 10*TOKEN, sender=t.k1)
-    # Initialize exchange
+    # PROVIDER initializes exchange
     uniswap_multi.initializeExchange(10*TOKEN, value=5*ETH, sender=t.k1)
     timeout = t.s.head_state.timestamp + 300
     INVARIANT = 5*ETH*10*TOKEN
-    # Starting Balances of buyer address
+    # Starting balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000
     assert uni_token.balanceOf(t.a2) == 0
     t.s.mine();
-    # Buy Tokens
+    # BUYER converts ETH to UNI
     STARTGAS=90000
     t.s.tx(to=uniswap_multi.address, startgas=STARTGAS, value=1*ETH, sender=t.k2)
     fee = 1*ETH/500
-    assert uniswap_multi.ethFeePool() == fee
     new_market_eth = 5*ETH + 1*ETH - fee
-    assert uniswap_multi.ethInMarket() == new_market_eth
-    # Contract ETH balance = eth in market + fee
-    assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth + fee
     new_market_tokens = int(INVARIANT/new_market_eth)
-    assert uniswap_multi.tokensInMarket() == new_market_tokens
-    # Contract Token balance = tokens in market
-    assert uni_token.balanceOf(uniswap_multi.address) == new_market_tokens
     purchased_tokens = 10*TOKEN - new_market_tokens
-    # Final Balances of buyer address
+    # Updated balances of UNI exchange
+    assert uniswap_multi.ethFeePool() == fee
+    assert uniswap_multi.ethInMarket() == new_market_eth
+    assert t.s.head_state.get_balance(uniswap_multi.address) == new_market_eth + fee
+    assert uniswap_multi.tokensInMarket() == new_market_tokens
+    assert uni_token.balanceOf(uniswap_multi.address) == new_market_tokens
+    # Final balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
     assert uni_token.balanceOf(t.a2) == purchased_tokens
     # msg.value = 0
