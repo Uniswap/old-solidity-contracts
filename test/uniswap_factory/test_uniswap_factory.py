@@ -23,16 +23,19 @@ def swap_token(t, contract_tester):
 def uniswap_factory(t, contract_tester):
     return contract_tester('Exchange/UniswapFactory.sol', args=[])
 
-def test_uniswap_factory(t, uni_token, swap_token, uniswap_factory, contract_tester, assert_tx_failed):
+def test_uniswap_factory_token_to_token(t, uni_token, swap_token, uniswap_factory, contract_tester, assert_tx_failed):
     t.s.mine()
     # Create UNI token exchange
     uni_exchange_address = uniswap_factory.createExchange(uni_token.address)
-    start_time = t.s.head_state.timestamp
-    assert uniswap_factory.getExchangeCount() == 1
-    assert uniswap_factory.doesExchangeExist(uni_token.address) == True
-    assert uni_exchange_address == uniswap_factory.tokenExchangeLookup(uni_token.address)
     abi = json.load(open(EXCHANGE_ABI))
     uni_token_exchange = t.ABIContract(t.s, abi, uni_exchange_address)
+    start_time = t.s.head_state.timestamp
+    assert uniswap_factory.getExchangeCount() == 1
+    assert uniswap_factory.doesTokenHaveAnExchange(uni_token.address) == True
+    assert uniswap_factory.isAddressAnExchange(uni_exchange_address) == True
+    assert uni_exchange_address == uniswap_factory.tokenToExchangeLookup(uni_token.address)
+    assert uniswap_factory.tokenToExchangeLookup(uni_token.address) == uni_exchange_address
+    assert  u.remove_0x_head(uniswap_factory.exchangeToTokenLookup(uni_exchange_address)) == uni_token.address.hex();
     # Test UNI token exchange initial state
     assert uni_token_exchange.FEE_RATE() == 500
     assert uni_token_exchange.ethInMarket() == 0
@@ -44,12 +47,15 @@ def test_uniswap_factory(t, uni_token, swap_token, uniswap_factory, contract_tes
     assert uni_token_exchange.totalShares() == 0
     assert uni_token_exchange.lastFeeDistribution() == start_time
     t.s.mine()
-    # Create SWAP token exchange
+    # Deploy SWAP token exchange contract with factory
     swap_exchange_address = uniswap_factory.createExchange(swap_token.address)
-    assert uniswap_factory.getExchangeCount() == 2
-    assert uniswap_factory.doesExchangeExist(swap_token.address) == True
-    assert swap_exchange_address == uniswap_factory.tokenExchangeLookup(swap_token.address)
     swap_token_exchange = t.ABIContract(t.s, abi, swap_exchange_address)
+    assert uniswap_factory.getExchangeCount() == 2
+    assert uniswap_factory.doesTokenHaveAnExchange(swap_token.address) == True
+    assert uniswap_factory.isAddressAnExchange(swap_exchange_address) == True
+    assert swap_exchange_address == uniswap_factory.tokenToExchangeLookup(swap_token.address)
+    assert uniswap_factory.tokenToExchangeLookup(swap_token.address) == swap_exchange_address
+    assert  u.remove_0x_head(uniswap_factory.exchangeToTokenLookup(swap_exchange_address)) == swap_token.address.hex();
     # create exchange fails if sent ether
     assert_tx_failed(t, lambda: uniswap_factory.createExchange(uni_token.address, value=10))
     # create exchange fails if parameters are missing or empty
