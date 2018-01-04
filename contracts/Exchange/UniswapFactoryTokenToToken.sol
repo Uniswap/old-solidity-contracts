@@ -8,28 +8,28 @@ contract FactoryInterface {
     mapping(address => address) tokenExchanges;
     function createExchange(address token) public returns (address exchange);
     function getExchangeCount() public view returns (uint exchangeCount);
-    function doesExchangeExist(address token) public view returns (bool);
-    function tokenExchangeLookup(address token) public view returns (address exchange);
+    function doesTokenHaveAnExchange(address token) public view returns (bool);
+    function isAddressAnExchange(address exchange) public view returns (bool);
+    function tokenToExchangeLookup(address token) public view returns (address exchange);
+    function exchangeToTokenLookup(address token) public view returns (address exchange);
 }
 
 
-contract UniswapFactory is FactoryInterface {
+contract UniswapFactoryTokenToToken is FactoryInterface {
 
     // index of tokens with registered exchanges
     address[] public tokenList;
-
-    // Mapping of token addresses to exchanges
-    mapping(address => bool) exchangeExists;
-    mapping(address => address) tokenExchanges;
+    mapping(address => address) tokenToExchange;
+    mapping(address => address) exchangeToToken;
 
 
     function createExchange(address token) public returns (address exchange) {
-        require(!exchangeExists[token]);
+        require(tokenToExchange[token] == address(0));      //There can only be one exchange per token
         require(token != address(0));
         UniswapTokenToToken newExchange = new UniswapTokenToToken(token);
         tokenList.push(token);
-        tokenExchanges[token] = newExchange;
-        exchangeExists[token] = true;
+        tokenToExchange[token] = newExchange;
+        exchangeToToken[newExchange] = token;
         return newExchange;
     }
 
@@ -39,13 +39,34 @@ contract UniswapFactory is FactoryInterface {
     }
 
 
-    function doesExchangeExist(address token) public view returns (bool) {
-        return exchangeExists[token];
+    function doesTokenHaveAnExchange(address token) public view returns (bool) {
+        if(tokenToExchange[token] == address(0)) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 
 
-    function tokenExchangeLookup(address token) public view returns (address exchange) {
-        require(exchangeExists[token]);
-        return tokenExchanges[token];
+    function isAddressAnExchange(address exchange) public view returns (bool) {
+        if(exchangeToToken[exchange] == address(0)) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+
+    function tokenToExchangeLookup(address token) public view returns (address exchange) {
+        require(tokenToExchange[token] != address(0));
+        return tokenToExchange[token];
+    }
+
+
+    function exchangeToTokenLookup(address exchange) public view returns (address token) {
+        require(exchangeToToken[exchange] != address(0));
+        return exchangeToToken[exchange];
     }
 }

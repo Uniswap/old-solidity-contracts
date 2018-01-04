@@ -69,7 +69,7 @@ contract UniswapTokenToToken is UniswapLiquidityProviders {
         uint256 newEthInMarket = ethInMarket.add(ethSold);
         uint256 newTokensInMarket = invariant.div(newEthInMarket);
         uint256 purchasedTokens = tokensInMarket.sub(newTokensInMarket);
-        require(purchasedTokens <= tokensInMarket.div(10)); //cannot buy more than 10% of tokens through fallback function
+        //require(purchasedTokens <= tokensInMarket.div(10)); //cannot buy more than 10% of tokens through fallback function
         ethFeePool = ethFeePool.add(fee);
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
