@@ -53,7 +53,7 @@ $ pytest
 
 5) Fine tuning and improvements to smart contracts - IN PROGRESS
 
-6) Switch liquidity shares to ERC20 tokens? - ```dif - NOT STARTED```
+6) Switch liquidity shares to ERC20 tokens? - NOT STARTED
 
 7) Implement single token for all exchanges? - NOT STARTED
 
