@@ -43,22 +43,28 @@ $ pytest
 
 ### Roadmap:
 
-Aproximate dev roadmap - some things will be worked on in parallel and the order could change
+1) Basic ETH to ERC20 exchanges - COMPLETE
 
-1) Smart Contract - add system for shared liquidity providers and fee payouts - COMPLETE
+2) Decentralized liquidity providers with shared fee payouts - COMPLETE
 
-2) Python testing - IN PROGRESS
+3) Smart Contract - Exchange registry and factory - COMPLETE
 
-3) Smart Contract - Exchange Registry - IN PROGRESS
+4) ERC20 to ERC20 exchanges (tunneling between exchanges) - COMPLETE
 
-4) Frontend - begin work 
+5) Switch liquidity shares to ERC20 tokens? - NOT STARTED
 
-5) Switch liquidity shares to ERC20 tokens?
+6) Implement single token for all exchanges? - NOT STARTED
 
-6) Finish setting up ENS
+7) Python testing - IN PROGRESS (January, updated as smart contract changes)
 
-7) Smart Contract - Tunelling/Token-to-Token transfers
+8) ENS support - IN PROGRESS (test in January 2018, .eth domains expire every 2weeks on testnet)
 
-8) Testnet/formal audit
+9) Frontend - NOT STARTED (except for demo)
 
-other stuff: social media/awareness push 
+10) Testnet launch (Early/mid February)
+
+11) Create bountry system or find alternative methods of funding (mid February)
+
+11) Audit (Late February/March)
+
+12) Mainet launch - April 2018?
