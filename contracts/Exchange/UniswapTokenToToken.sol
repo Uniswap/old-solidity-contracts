@@ -17,7 +17,7 @@ contract ExchangeInterface {
     function fallbackEthToTokens(address buyer, uint256 value, uint256 timeout) public payable;
     function tokenToEth(uint256 tokenAmount, uint256 minEth, uint256 timeout) public;
     function tokenToEthToTunnel(address buyTokenAddress, uint256 amount) public;
-    function tunnelToEthToToken(address buyer) public payable;
+    function tunnelToEthToToken(address buyer) public payable returns (bool);
     event TokenPurchase(address indexed buyer, uint256 tokensPurchased, uint256 ethSpent);
     event EthPurchase(address indexed buyer, uint256 ethPurchased, uint256 tokensSpent);
 }
@@ -63,7 +63,7 @@ contract UniswapBasic {
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
         TokenPurchase(msg.sender, purchasedTokens, ethSold);
-        token.transfer(msg.sender, purchasedTokens);
+        require(token.transfer(msg.sender, purchasedTokens));
     }
 
     function fallbackEthToTokens(address buyer, uint256 value, uint256 timeout) public payable {
@@ -80,7 +80,7 @@ contract UniswapBasic {
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
         TokenPurchase(buyer, purchasedTokens, ethSold);
-        token.transfer(buyer, purchasedTokens);
+        require(token.transfer(buyer, purchasedTokens));
     }
 
     function tokenToEth(uint256 tokenAmount, uint256 minEth, uint256 timeout) public {
@@ -97,7 +97,7 @@ contract UniswapBasic {
         ethInMarket = newEthInMarket;
         EthPurchase(msg.sender, purchasedEth, tokensSold);
         msg.sender.transfer(purchasedEth);
-        token.transferFrom(msg.sender, address(this), tokenAmount);
+        require(token.transferFrom(msg.sender, address(this), tokenAmount));
     }
 }
 
@@ -137,7 +137,7 @@ contract UniswapLiquidityProviders is UniswapBasic {
         invariant = ethInMarket.mul(tokensInMarket);
         liquidityShares[msg.sender] = 1000;
         totalShares = 1000;
-        token.transferFrom(msg.sender, address(this), tokenAmount);
+        require(token.transferFrom(msg.sender, address(this), tokenAmount));
     }
 
     function investLiquidity() external payable {
@@ -153,7 +153,7 @@ contract UniswapLiquidityProviders is UniswapBasic {
         tokensInMarket = tokensInMarket.add(tokensRequired);
         invariant = ethInMarket.mul(tokensInMarket);
         Investment(msg.sender, sharesPurchased);
-        token.transferFrom(msg.sender, address(this), tokensRequired);
+        require(token.transferFrom(msg.sender, address(this), tokensRequired));
     }
 
     function divestLiquidity(uint256 sharesSold) external {
@@ -187,7 +187,7 @@ contract UniswapLiquidityProviders is UniswapBasic {
         require(divestedTokenBalance[msg.sender] != 0);
         uint256 divestedTokens = divestedTokenBalance[msg.sender];
         divestedTokenBalance[msg.sender] = 0;
-        token.transfer(msg.sender, divestedTokens);
+        require(token.transfer(msg.sender, divestedTokens));
     }
 
     function getShares(address provider) external view returns(uint256 shares) {
@@ -230,7 +230,6 @@ contract UniswapTokenToToken is UniswapLiquidityProviders {
     {
         factoryAddress = msg.sender;
         factory = FactoryInterface(factoryAddress);
-
         tokenAddress = _tokenAddress;
         token = ERC20Interface(tokenAddress);
         lastFeeDistribution = now;
@@ -251,11 +250,11 @@ contract UniswapTokenToToken is UniswapLiquidityProviders {
         tokenFeePool = tokenFeePool.add(fee);
         tokensInMarket = newTokensInMarket;
         ethInMarket = newEthInMarket;
-        token.transferFrom(msg.sender, address(this), amount);
-        exchange.tunnelToEthToToken.value(purchasedEth)(msg.sender);
+        require(token.transferFrom(msg.sender, address(this), amount));
+        require(exchange.tunnelToEthToToken.value(purchasedEth)(msg.sender));
     }
 
-    function tunnelToEthToToken(address buyer) public payable {
+    function tunnelToEthToToken(address buyer) public payable returns (bool) {
         require(invariant > 0);
         uint256 fee = msg.value.div(FEE_RATE);
         uint256 ethSold = msg.value.sub(fee);
@@ -267,6 +266,7 @@ contract UniswapTokenToToken is UniswapLiquidityProviders {
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
         TokenPurchase(buyer, purchasedTokens, ethSold);
-        token.transfer(buyer, purchasedTokens);
+        require(token.transfer(buyer, purchasedTokens));
+        return true;
     }
 }
