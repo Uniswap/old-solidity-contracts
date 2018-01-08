@@ -65,6 +65,6 @@ $ pytest
 
 11) Create bountry system or find alternative methods of funding (mid February)
 
-11) Audit (Late February/March)
+12) Audit (Late February/March)
 
-12) Mainet launch - April 2018?
+13) Mainet launch - April 2018?
