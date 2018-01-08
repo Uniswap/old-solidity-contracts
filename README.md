@@ -51,20 +51,22 @@ $ pytest
 
 4) ERC20 to ERC20 exchanges (tunneling between exchanges) - COMPLETE
 
-5) Switch liquidity shares to ERC20 tokens? - NOT STARTED
+5) Fine tuning and improvements to smart contracts - IN PROGRESS
 
-6) Implement single token for all exchanges? - NOT STARTED
+6) Switch liquidity shares to ERC20 tokens? - ```dif +NOT STARTED```
 
-7) Python testing - IN PROGRESS (January, updated as smart contract changes)
+7) Implement single token for all exchanges? - NOT STARTED
 
-8) ENS support - IN PROGRESS (test in January 2018, .eth domains expire every 2weeks on testnet)
+8) Python testing - IN PROGRESS (January, updated as smart contract changes)
 
-9) Frontend - NOT STARTED (except for demo)
+9) ENS support - IN PROGRESS (test in January 2018, .eth domains expire every 2weeks on testnet)
 
-10) Testnet launch (Early/mid February)
+10) Frontend - NOT STARTED (except for demo)
 
-11) Create bountry system or find alternative methods of funding (mid February)
+11) Testnet launch (Early/mid February)
 
-12) Audit (Late February/March)
+12) Create bountry system or find alternative methods of funding (mid February)
 
-13) Mainet launch - April 2018?
+13) Audit (Late February/March)
+
+14) Mainet launch - April 2018?
