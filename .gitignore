@@ -6,3 +6,5 @@ __pycache__/
 uniswap_python_environment/
 pyethereum/
 notes.py
+.soliumignore
+.soliumrc.json
