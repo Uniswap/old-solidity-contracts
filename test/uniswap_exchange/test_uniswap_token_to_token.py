@@ -53,7 +53,7 @@ def test_token_to_token(t, uni_token, swap_token, uniswap_factory, contract_test
     assert uni_token.balanceOf(t.a3) == 10*TOKEN
     assert swap_token.balanceOf(t.a3) == 0
     # BUYER converts  UNI to SWAP
-    uni_exchange.tokenToEthToTunnel(swap_token.address, 2*TOKEN, sender=t.k3)
+    uni_exchange.tokenToTokenOut(swap_token.address, 2*TOKEN, sender=t.k3)
     # Updated state of UNI exchange
     uni_fee = 2*TOKEN/500
     uni_new_market_tokens = 10*TOKEN + 2*TOKEN - uni_fee

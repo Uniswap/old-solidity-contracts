@@ -14,7 +14,7 @@ def uni_token(t, contract_tester):
 
 @pytest.fixture
 def uniswap_exchange(t, contract_tester, uni_token):
-    return contract_tester('Exchange/UniswapTokenToToken.sol', args=[uni_token.address])
+    return contract_tester('Exchange/UniswapExchange.sol', args=[uni_token.address])
 
 def test_liquidity_investment(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()

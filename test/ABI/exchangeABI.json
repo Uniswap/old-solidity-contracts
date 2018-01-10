@@ -28,28 +28,6 @@
 		"type": "function"
 	},
 	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "buyer",
-				"type": "address"
-			},
-			{
-				"name": "value",
-				"type": "uint256"
-			},
-			{
-				"name": "timeout",
-				"type": "uint256"
-			}
-		],
-		"name": "fallbackEthToTokens",
-		"outputs": [],
-		"payable": true,
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
 		"constant": true,
 		"inputs": [],
 		"name": "totalShares",
@@ -79,26 +57,36 @@
 	},
 	{
 		"constant": false,
-		"inputs": [],
-		"name": "withdrawDivestedEth",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
+		"inputs": [
+			{
+				"name": "buyer",
+				"type": "address"
+			}
+		],
+		"name": "tokenToTokenIn",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": true,
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
 		"constant": false,
 		"inputs": [
 			{
-				"name": "tokenAmount",
+				"name": "_tokenAmount",
 				"type": "uint256"
 			},
 			{
-				"name": "minEth",
+				"name": "_minEth",
 				"type": "uint256"
 			},
 			{
-				"name": "timeout",
+				"name": "_timeout",
 				"type": "uint256"
 			}
 		],
@@ -126,11 +114,11 @@
 		"constant": false,
 		"inputs": [
 			{
-				"name": "minTokens",
+				"name": "_minTokens",
 				"type": "uint256"
 			},
 			{
-				"name": "timeout",
+				"name": "_timeout",
 				"type": "uint256"
 			}
 		],
@@ -149,6 +137,24 @@
 			}
 		],
 		"name": "divestLiquidity",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "buyTokenAddress",
+				"type": "address"
+			},
+			{
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "tokenToTokenOut",
 		"outputs": [],
 		"payable": false,
 		"stateMutability": "nonpayable",
@@ -193,29 +199,6 @@
 	},
 	{
 		"constant": true,
-		"inputs": [
-			{
-				"name": "provider",
-				"type": "address"
-			}
-		],
-		"name": "getDivestedBalances",
-		"outputs": [
-			{
-				"name": "ethBal",
-				"type": "uint256"
-			},
-			{
-				"name": "tokBal",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
 		"inputs": [],
 		"name": "invariant",
 		"outputs": [
@@ -245,15 +228,6 @@
 	{
 		"constant": false,
 		"inputs": [],
-		"name": "withdrawDivestedTokens",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [],
 		"name": "addFeesToMarket",
 		"outputs": [],
 		"payable": false,
@@ -272,38 +246,6 @@
 		],
 		"payable": false,
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "buyer",
-				"type": "address"
-			}
-		],
-		"name": "tunnelToEthToToken",
-		"outputs": [],
-		"payable": true,
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "buyTokenAddress",
-				"type": "address"
-			},
-			{
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "tokenToEthToTunnel",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -360,40 +302,6 @@
 		"inputs": [
 			{
 				"indexed": true,
-				"name": "liquidityProvider",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"name": "sharesPurchased",
-				"type": "uint256"
-			}
-		],
-		"name": "Investment",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"name": "liquidityProvider",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"name": "sharesSold",
-				"type": "uint256"
-			}
-		],
-		"name": "Divestment",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
 				"name": "buyer",
 				"type": "address"
 			},
@@ -431,6 +339,40 @@
 			}
 		],
 		"name": "EthPurchase",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "liquidityProvider",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "sharesPurchased",
+				"type": "uint256"
+			}
+		],
+		"name": "Investment",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "liquidityProvider",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "sharesSold",
+				"type": "uint256"
+			}
+		],
+		"name": "Divestment",
 		"type": "event"
 	}
 ]

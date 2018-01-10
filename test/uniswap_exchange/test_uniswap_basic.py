@@ -15,7 +15,7 @@ def uni_token(t, contract_tester):
 
 @pytest.fixture
 def uniswap_exchange(t, contract_tester, uni_token):
-    return contract_tester('Exchange/UniswapTokenToToken.sol', args=[uni_token.address])
+    return contract_tester('Exchange/UniswapExchange.sol', args=[uni_token.address])
 
 def test_exchange_initial_state(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     start_time = t.s.head_state.timestamp
@@ -158,5 +158,3 @@ def test_fallback_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester,
     assert_tx_failed(t, lambda: t.s.tx(to=uniswap_exchange.address, startgas=STARTGAS, sender=t.k2))
     # not enough gas
     assert_tx_failed(t, lambda: t.s.tx(to=uniswap_exchange.address, startgas=21000, value=1*ETH, sender=t.k2))
-    # msg.value is too high
-    assert_tx_failed(t, lambda: t.s.tx(to=uniswap_exchange.address, startgas=STARTGAS, value=2*ETH, sender=t.k2))
