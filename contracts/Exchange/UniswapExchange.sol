@@ -111,10 +111,7 @@ contract UniswapExchange {
     }
 
     // Swaps TOKEN1 for ETH on current exchange, calls ETH to TOKEN2 on second exchange
-    function tokenToTokenOut(address buyTokenAddress, uint256 amount)
-        external
-        exchangeInitialized
-    {
+    function tokenToTokenOut(address buyTokenAddress, uint256 amount) external exchangeInitialized {
         require(amount != 0);
         address exchangeAddress = factory.tokenToExchangeLookup(buyTokenAddress);
         require(exchangeAddress != address(0) && exchangeAddress != address(this));
@@ -195,10 +192,7 @@ contract UniswapExchange {
     }
 
     /// INTERNAL FUNCTIONS
-    function tokenPurchase(address buyer, uint256 ethReceived, uint256 minTokens, uint256 timeout)
-        internal
-        exchangeInitialized
-    {
+    function tokenPurchase(address buyer, uint256 ethReceived, uint256 minTokens, uint256 timeout) internal exchangeInitialized {
         require(now < timeout);
         uint256 fee = ethReceived.div(FEE_RATE);
         uint256 ethSold = ethReceived.sub(fee);
@@ -213,10 +207,7 @@ contract UniswapExchange {
         require(token.transfer(buyer, purchasedTokens));
     }
 
-    function ethPurchase(address buyer, uint256 tokenAmount, uint256 minEth, uint256 timeout)
-        internal
-        exchangeInitialized
-    {
+    function ethPurchase(address buyer, uint256 tokenAmount, uint256 minEth, uint256 timeout) internal exchangeInitialized {
         require(now < timeout);
         uint256 fee = tokenAmount.div(FEE_RATE);
         uint256 tokensSold = tokenAmount.sub(fee);
