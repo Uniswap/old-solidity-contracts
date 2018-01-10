@@ -59,11 +59,6 @@ contract UniswapExchange {
         _;
     }
 
-    modifier onlyExchange() {
-        require(factory.isAddressAnExchange(msg.sender));
-        _;
-    }
-
     modifier exchangeInitialized() {
         require(invariant > 0 && totalShares > 0);
         _;
@@ -72,12 +67,9 @@ contract UniswapExchange {
     /// CONSTRUCTOR
     function UniswapExchange(address _tokenAddress) public {
         tokenAddress = _tokenAddress;
-        token = ERC20Interface(tokenAddress);
         factoryAddress = msg.sender;
-        factory = FactoryInterface(factoryAddress);
-        tokenAddress = _tokenAddress;
         token = ERC20Interface(tokenAddress);
-        lastFeeDistribution = now;
+        factory = FactoryInterface(factoryAddress);
     }
 
     /// FALLBACK FUNCTION

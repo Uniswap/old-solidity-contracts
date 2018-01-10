@@ -18,7 +18,6 @@ def uniswap_exchange(t, contract_tester, uni_token):
     return contract_tester('Exchange/UniswapExchange.sol', args=[uni_token.address])
 
 def test_exchange_initial_state(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
-    start_time = t.s.head_state.timestamp
     assert uniswap_exchange.FEE_RATE() == 500
     assert uniswap_exchange.ethInMarket() == 0
     assert uniswap_exchange.tokensInMarket() == 0
@@ -27,7 +26,7 @@ def test_exchange_initial_state(t, uni_token, uniswap_exchange, contract_tester,
     assert uniswap_exchange.tokenFeePool() == 0
     assert u.remove_0x_head(uniswap_exchange.tokenAddress()) == uni_token.address.hex()
     assert uniswap_exchange.totalShares() == 0
-    assert uniswap_exchange.lastFeeDistribution() == start_time
+    assert uniswap_exchange.lastFeeDistribution() == 0
 
 def test_initialize_exchange(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()

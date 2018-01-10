@@ -23,13 +23,12 @@ def swap_token(t, contract_tester):
 def uniswap_factory(t, contract_tester):
     return contract_tester('Exchange/UniswapFactory.sol', args=[])
 
-def test_uniswap_factory_token_to_token(t, uni_token, swap_token, uniswap_factory, contract_tester, assert_tx_failed):
+def test_uniswap_factory(t, uni_token, swap_token, uniswap_factory, contract_tester, assert_tx_failed):
     t.s.mine()
     # Create UNI token exchange
     uni_exchange_address = uniswap_factory.createExchange(uni_token.address)
     abi = json.load(open(EXCHANGE_ABI))
     uni_token_exchange = t.ABIContract(t.s, abi, uni_exchange_address)
-    start_time = t.s.head_state.timestamp
     assert uniswap_factory.getExchangeCount() == 1
     assert uniswap_factory.doesTokenHaveAnExchange(uni_token.address) == True
     assert uniswap_factory.isAddressAnExchange(uni_exchange_address) == True
@@ -45,7 +44,7 @@ def test_uniswap_factory_token_to_token(t, uni_token, swap_token, uniswap_factor
     assert uni_token_exchange.tokenFeePool() == 0
     assert u.remove_0x_head(uni_token_exchange.tokenAddress()) == uni_token.address.hex()
     assert uni_token_exchange.totalShares() == 0
-    assert uni_token_exchange.lastFeeDistribution() == start_time
+    assert uni_token_exchange.lastFeeDistribution() == 0
     t.s.mine()
     # Deploy SWAP token exchange contract with factory
     swap_exchange_address = uniswap_factory.createExchange(swap_token.address)
