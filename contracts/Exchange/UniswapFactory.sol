@@ -1,5 +1,5 @@
 pragma solidity ^0.4.18;
-import "./UniswapTokenToToken.sol";
+import "./UniswapExchange.sol";
 
 
 contract FactoryInterface {
@@ -25,7 +25,7 @@ contract UniswapFactory is FactoryInterface {
     function createExchange(address token) public returns (address exchange) {
         require(tokenToExchange[token] == address(0));      //There can only be one exchange per token
         require(token != address(0));
-        UniswapTokenToToken newExchange = new UniswapTokenToToken(token);
+        UniswapExchange newExchange = new UniswapExchange(token);
         tokenList.push(token);
         tokenToExchange[token] = newExchange;
         exchangeToToken[newExchange] = token;
