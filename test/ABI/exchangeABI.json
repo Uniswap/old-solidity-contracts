@@ -1,16 +1,28 @@
 [
 	{
-		"constant": true,
-		"inputs": [],
-		"name": "lastFeeDistribution",
-		"outputs": [
+		"constant": false,
+		"inputs": [
 			{
-				"name": "",
+				"name": "_tokenAmount",
 				"type": "uint256"
+			},
+			{
+				"name": "_minEth",
+				"type": "uint256"
+			},
+			{
+				"name": "_timeout",
+				"type": "uint256"
+			},
+			{
+				"name": "_beneficiary",
+				"type": "address"
 			}
 		],
+		"name": "tokenToEthPayment",
+		"outputs": [],
 		"payable": false,
-		"stateMutability": "view",
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -25,6 +37,32 @@
 		],
 		"payable": false,
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_buyTokenAddress",
+				"type": "address"
+			},
+			{
+				"name": "_tokensSold",
+				"type": "uint256"
+			},
+			{
+				"name": "_minTokensReceived",
+				"type": "uint256"
+			},
+			{
+				"name": "_timeout",
+				"type": "uint256"
+			}
+		],
+		"name": "tokenToTokenSwap",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -59,30 +97,19 @@
 		"constant": false,
 		"inputs": [
 			{
-				"name": "buyer",
+				"name": "_buyTokenAddress",
 				"type": "address"
-			}
-		],
-		"name": "tokenToTokenIn",
-		"outputs": [
+			},
 			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": true,
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
+				"name": "_beneficiary",
+				"type": "address"
+			},
 			{
-				"name": "_tokenAmount",
+				"name": "_tokensSold",
 				"type": "uint256"
 			},
 			{
-				"name": "_minEth",
+				"name": "_minTokensReceived",
 				"type": "uint256"
 			},
 			{
@@ -90,7 +117,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "tokenToEth",
+		"name": "tokenToTokenPayment",
 		"outputs": [],
 		"payable": false,
 		"stateMutability": "nonpayable",
@@ -120,9 +147,13 @@
 			{
 				"name": "_timeout",
 				"type": "uint256"
+			},
+			{
+				"name": "_beneficiary",
+				"type": "address"
 			}
 		],
-		"name": "ethToTokens",
+		"name": "ethToTokenPayment",
 		"outputs": [],
 		"payable": true,
 		"stateMutability": "payable",
@@ -144,26 +175,49 @@
 	},
 	{
 		"constant": false,
-		"inputs": [
-			{
-				"name": "buyTokenAddress",
-				"type": "address"
-			},
-			{
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "tokenToTokenOut",
+		"inputs": [],
+		"name": "investLiquidity",
 		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
+		"payable": true,
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
 		"constant": false,
-		"inputs": [],
-		"name": "investLiquidity",
+		"inputs": [
+			{
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"name": "_minTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "tokenToTokenIn",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_minTokens",
+				"type": "uint256"
+			},
+			{
+				"name": "_timeout",
+				"type": "uint256"
+			}
+		],
+		"name": "ethToTokenSwap",
 		"outputs": [],
 		"payable": true,
 		"stateMutability": "payable",
@@ -195,6 +249,28 @@
 		],
 		"payable": false,
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_tokenAmount",
+				"type": "uint256"
+			},
+			{
+				"name": "_minEth",
+				"type": "uint256"
+			},
+			{
+				"name": "_timeout",
+				"type": "uint256"
+			}
+		],
+		"name": "tokenToEthSwap",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{

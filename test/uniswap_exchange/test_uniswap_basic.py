@@ -56,7 +56,7 @@ def test_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester, assert_t
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000
     assert uni_token.balanceOf(t.a2) == 0
     # BUYER converts ETH to UNI
-    uniswap_exchange.ethToTokens(1, timeout, value=1*ETH, sender=t.k2)
+    uniswap_exchange.ethToTokenSwap(1, timeout, value=1*ETH, sender=t.k2)
     INVARIANT = 5*ETH*10*TOKEN
     fee = 1*ETH/500
     new_market_eth = 5*ETH + 1*ETH - fee
@@ -72,15 +72,15 @@ def test_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester, assert_t
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
     assert uni_token.balanceOf(t.a2) == purchased_tokens - 167
     # Min tokens = 0
-    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokens(0, timeout, value=1*ETH, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenSwap(0, timeout, value=1*ETH, sender=t.k2))
     # Purchased tokens < min tokens
-    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokens(purchased_tokens + 1, timeout, value=1*ETH, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenSwap(purchased_tokens + 1, timeout, value=1*ETH, sender=t.k2))
     # Timeout = 0
-    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokens(1, 0, value=1*ETH, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenSwap(1, 0, value=1*ETH, sender=t.k2))
     # Timeout < now
-    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokens(1, timeout - 301, value=1*ETH, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenSwap(1, timeout - 301, value=1*ETH, sender=t.k2))
     # msg.value = 0
-    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokens(1, timeout, value=0, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenSwap(1, timeout, value=0, sender=t.k2))
 
 def test_tokens_to_eth(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()
@@ -96,7 +96,7 @@ def test_tokens_to_eth(t, uni_token, uniswap_exchange, contract_tester, assert_t
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000
     assert uni_token.balanceOf(t.a2) == 2*TOKEN
     # BUYER converts UNI to ETH
-    uniswap_exchange.tokenToEth(2*TOKEN, 1, timeout, sender=t.k2)
+    uniswap_exchange.tokenToEthSwap(2*TOKEN, 1, timeout, sender=t.k2)
     # UNI exchange state changes
     fee = 2*TOKEN/500;
     new_market_tokens = 10*TOKEN + 2*TOKEN - fee
@@ -112,17 +112,17 @@ def test_tokens_to_eth(t, uni_token, uniswap_exchange, contract_tester, assert_t
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 + purchased_eth - 83
     assert uni_token.balanceOf(t.a2) == 0
     # Tokens sold = 0
-    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEth(0, 1, timeout, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEthSwap(0, 1, timeout, sender=t.k2))
     # Tokens sold > balances[msg.sender]
-    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEth(3*TOKEN, 1, timeout, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEthSwap(3*TOKEN, 1, timeout, sender=t.k2))
     # Min eth = 0
-    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEth(2*TOKEN, 0, timeout, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEthSwap(2*TOKEN, 0, timeout, sender=t.k2))
     # Purchased ETH < min ETH
-    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEth(2*TOKEN, purchased_eth + 1, timeout, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEthSwap(2*TOKEN, purchased_eth + 1, timeout, sender=t.k2))
     # Timeout = 0
-    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEth(2*TOKEN, 1, 0, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEthSwap(2*TOKEN, 1, 0, sender=t.k2))
     # Timeout < now
-    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEth(2*TOKEN, 1, timeout - 301, sender=t.k2))
+    assert_tx_failed(t, lambda: uniswap_exchange.tokenToEthSwap(2*TOKEN, 1, timeout - 301, sender=t.k2))
 
 def test_fallback_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()

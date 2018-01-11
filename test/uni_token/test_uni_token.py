@@ -5,9 +5,9 @@ from ethereum import utils as u
     run test with:     python3.6 -m pytest -v
 """
 
-TOKEN_VALUE_1 = 100*10**12
-TOKEN_VALUE_2 = 200*10**12
-TOKEN_VALUE_3 = 300*10**12
+TOKEN_VALUE_1 = 100*10**18
+TOKEN_VALUE_2 = 200*10**18
+TOKEN_VALUE_3 = 300*10**18
 
 @pytest.fixture
 def uni_token(t, contract_tester):
@@ -16,7 +16,7 @@ def uni_token(t, contract_tester):
 def test_token_initial_state(t, uni_token, contract_tester, assert_tx_failed):
     assert uni_token.name().decode("utf-8") == 'UNI Test Token'
     assert uni_token.symbol().decode("utf-8") == 'UNI'
-    assert uni_token.decimals() == 12;
+    assert uni_token.decimals() == 18;
 
 def test_mint_tokens(t, uni_token, assert_tx_failed):
     # Mint fails if not called by contact owner
