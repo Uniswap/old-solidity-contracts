@@ -6,7 +6,7 @@ from ethereum import utils as u
 """
 
 ETH = 10**18
-TOKEN = 10**12
+TOKEN = 10**18
 
 @pytest.fixture
 def uni_token(t, contract_tester):

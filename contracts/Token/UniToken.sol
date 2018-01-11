@@ -1,5 +1,6 @@
 pragma solidity ^0.4.18;
 
+
 contract ERC20Token {
     uint256 public totalSupply;
     function balanceOf(address who) public constant returns (uint256);
@@ -164,5 +165,5 @@ contract MintableToken is StandardToken, Ownable {
 contract UniToken is MintableToken {
     string public constant name = "UNI Test Token";
     string public constant symbol = "UNI";
-    uint8 public constant decimals = 12;
+    uint8 public constant decimals = 18;
 }

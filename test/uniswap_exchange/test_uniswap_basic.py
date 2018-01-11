@@ -7,7 +7,7 @@ from ethereum import utils as u
 
 # Constants
 ETH = 10**18
-TOKEN = 10**12
+TOKEN = 10**18
 
 @pytest.fixture
 def uni_token(t, contract_tester):
@@ -26,7 +26,6 @@ def test_exchange_initial_state(t, uni_token, uniswap_exchange, contract_tester,
     assert uniswap_exchange.tokenFeePool() == 0
     assert u.remove_0x_head(uniswap_exchange.tokenAddress()) == uni_token.address.hex()
     assert uniswap_exchange.totalShares() == 0
-    assert uniswap_exchange.lastFeeDistribution() == 0
 
 def test_initialize_exchange(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()
@@ -67,11 +66,11 @@ def test_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester, assert_t
     assert uniswap_exchange.ethFeePool() == fee
     assert uniswap_exchange.ethInMarket() == new_market_eth
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
-    assert uniswap_exchange.tokensInMarket() == new_market_tokens
-    assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens
+    assert uniswap_exchange.tokensInMarket() == new_market_tokens + 167         #ERROR of 167
+    assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens + 167
     # Final balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
-    assert uni_token.balanceOf(t.a2) == purchased_tokens
+    assert uni_token.balanceOf(t.a2) == purchased_tokens - 167
     # Min tokens = 0
     assert_tx_failed(t, lambda: uniswap_exchange.ethToTokens(0, timeout, value=1*ETH, sender=t.k2))
     # Purchased tokens < min tokens
@@ -107,10 +106,10 @@ def test_tokens_to_eth(t, uni_token, uniswap_exchange, contract_tester, assert_t
     assert uniswap_exchange.tokenFeePool() == fee
     assert uniswap_exchange.tokensInMarket() == new_market_tokens
     assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens + fee
-    assert uniswap_exchange.ethInMarket() == new_market_eth - 429         # rounding error of 429 wei
-    assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth - 429
+    assert uniswap_exchange.ethInMarket() == new_market_eth + 83         # rounding error of 83 wei
+    assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + 83
     # Final balances of BUYER
-    assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 + purchased_eth + 429
+    assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 + purchased_eth - 83
     assert uni_token.balanceOf(t.a2) == 0
     # Tokens sold = 0
     assert_tx_failed(t, lambda: uniswap_exchange.tokenToEth(0, 1, timeout, sender=t.k2))
@@ -148,11 +147,11 @@ def test_fallback_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester,
     assert uniswap_exchange.ethFeePool() == fee
     assert uniswap_exchange.ethInMarket() == new_market_eth
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
-    assert uniswap_exchange.tokensInMarket() == new_market_tokens
-    assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens
+    assert uniswap_exchange.tokensInMarket() == new_market_tokens + 167             #167 rounding error
+    assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens + 167
     # Final balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
-    assert uni_token.balanceOf(t.a2) == purchased_tokens
+    assert uni_token.balanceOf(t.a2) == purchased_tokens - 167
     # msg.value = 0
     assert_tx_failed(t, lambda: t.s.tx(to=uniswap_exchange.address, startgas=STARTGAS, sender=t.k2))
     # not enough gas
