@@ -30,8 +30,6 @@ def test_uniswap_factory(t, uni_token, swap_token, uniswap_factory, contract_tes
     abi = json.load(open(EXCHANGE_ABI))
     uni_token_exchange = t.ABIContract(t.s, abi, uni_exchange_address)
     assert uniswap_factory.getExchangeCount() == 1
-    assert uniswap_factory.doesTokenHaveAnExchange(uni_token.address) == True
-    assert uniswap_factory.isAddressAnExchange(uni_exchange_address) == True
     assert uni_exchange_address == uniswap_factory.tokenToExchangeLookup(uni_token.address)
     assert uniswap_factory.tokenToExchangeLookup(uni_token.address) == uni_exchange_address
     assert  u.remove_0x_head(uniswap_factory.exchangeToTokenLookup(uni_exchange_address)) == uni_token.address.hex();
@@ -49,8 +47,6 @@ def test_uniswap_factory(t, uni_token, swap_token, uniswap_factory, contract_tes
     swap_exchange_address = uniswap_factory.createExchange(swap_token.address)
     swap_token_exchange = t.ABIContract(t.s, abi, swap_exchange_address)
     assert uniswap_factory.getExchangeCount() == 2
-    assert uniswap_factory.doesTokenHaveAnExchange(swap_token.address) == True
-    assert uniswap_factory.isAddressAnExchange(swap_exchange_address) == True
     assert swap_exchange_address == uniswap_factory.tokenToExchangeLookup(swap_token.address)
     assert uniswap_factory.tokenToExchangeLookup(swap_token.address) == swap_exchange_address
     assert  u.remove_0x_head(uniswap_factory.exchangeToTokenLookup(swap_exchange_address)) == swap_token.address.hex();
