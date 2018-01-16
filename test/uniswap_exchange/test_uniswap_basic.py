@@ -45,7 +45,7 @@ def test_initialize_exchange(t, uni_token, uniswap_exchange, contract_tester, as
     # Assert final ETH balance of test account
     assert t.s.head_state.get_balance(t.a1) == 1000000000000000000000000000000 - 5*ETH
 
-def test_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
+def test_eth_to_token_swap(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()
     uni_token.mint(t.a1, 10*TOKEN)
     uni_token.approve(uniswap_exchange.address, 10*TOKEN, sender=t.k1)
@@ -82,7 +82,7 @@ def test_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester, assert_t
     # msg.value = 0
     assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenSwap(1, timeout, value=0, sender=t.k2))
 
-def test_tokens_to_eth(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
+def test_tokens_to_eth_swap(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()
     uni_token.mint(t.a1, 10*TOKEN)
     uni_token.mint(t.a2, 2*TOKEN)
@@ -124,7 +124,7 @@ def test_tokens_to_eth(t, uni_token, uniswap_exchange, contract_tester, assert_t
     # Timeout < now
     assert_tx_failed(t, lambda: uniswap_exchange.tokenToEthSwap(2*TOKEN, 1, timeout - 301, sender=t.k2))
 
-def test_fallback_eth_to_tokens(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
+def test_fallback_eth_to_token_swap(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()
     uni_token.mint(t.a1, 10*TOKEN)
     uni_token.approve(uniswap_exchange.address, 10*TOKEN, sender=t.k1)

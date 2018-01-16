@@ -23,7 +23,7 @@ def swap_token(t, contract_tester):
 def uniswap_factory(t, contract_tester):
     return contract_tester('Exchange/UniswapFactory.sol', args=[])
 
-def test_token_to_token(t, uni_token, swap_token, uniswap_factory, contract_tester, assert_tx_failed):
+def test_token_to_token_swap(t, uni_token, swap_token, uniswap_factory, contract_tester, assert_tx_failed):
     t.s.mine()
     abi = json.load(open(EXCHANGE_ABI))
     # Create UNI and SWAP token exchanges using uniswap factory

@@ -15,11 +15,8 @@ contract ExchangeInterface {
     address public tokenAddress;
     ERC20Interface token;
     function ethToTokenSwap(uint256 _minTokens, uint256 _timeout) external payable;
-    function ethToTokenPayment(uint256 _minTokens, uint256 _timeout, address _beneficiary) external payable;
     function tokenToEthSwap(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout) external;
-    function tokenToEthPayment(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout, address _beneficiary) external;
     function tokenToTokenSwap(address _buyTokenAddress, uint256 _tokensSold, uint256 _minTokensReceived, uint256 _timeout) external;
-    function tokenToTokenPayment(address _buyTokenAddress, address _beneficiary, uint256 _tokensSold, uint256 _minTokensReceived, uint256 _timeout) external;
     function tokenToTokenIn(address buyer, uint256 _minTokens) external payable returns (bool);
     function ethToToken(address buyer, uint256 ethReceived, uint256 minTokens) internal;
     function tokenToEth(address buyer, uint256 tokenAmount, uint256 minEth) internal;
@@ -93,31 +90,10 @@ contract UniswapExchange {
         ethToToken(msg.sender, msg.value,  _minTokens);
     }
 
-    // Payer pays in ETH, beneficiary receives Tokens
-    function ethToTokenPayment(uint256 _minTokens, uint256 _timeout, address _beneficiary) external payable {
-        require(msg.value > 0 && _minTokens > 0 && now < _timeout);
-        require(_beneficiary != address(0) && _beneficiary != address(this));
-        ethToToken(_beneficiary, msg.value,  _minTokens);
-    }
-
     // Buyer swaps Tokens for ETH
     function tokenToEthSwap(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout) external {
         require(_tokenAmount > 0 && _minEth > 0 && now < _timeout);
         tokenToEth(msg.sender, _tokenAmount, _minEth);
-    }
-
-    // Payer pays in Tokens, beneficiary receives ETH
-    function tokenToEthPayment(
-        uint256 _tokenAmount,
-        uint256 _minEth,
-        uint256 _timeout,
-        address _beneficiary
-    )
-        external
-    {
-        require(_tokenAmount > 0 && _minEth > 0 && now < _timeout);
-        require(_beneficiary != address(0) && _beneficiary != address(this));
-        tokenToEth(_beneficiary, _tokenAmount, _minEth);
     }
 
     // Buyer swaps exchange Tokens for Tokens of provided address - provided address must be a token with an attached Uniswap exchange
@@ -131,21 +107,6 @@ contract UniswapExchange {
     {
         require(_tokensSold > 0 && _minTokensReceived > 0 && now < _timeout);
         tokenToTokenOut(_buyTokenAddress, msg.sender, _tokensSold, _minTokensReceived);
-    }
-
-    // Payer pays in exchange Token, beneficiary receives Tokens of provided address
-    function tokenToTokenPayment(
-        address _buyTokenAddress,
-        address _beneficiary,
-        uint256 _tokensSold,
-        uint256 _minTokensReceived,
-        uint256 _timeout
-    )
-        external
-    {
-        require(_tokensSold > 0 && _minTokensReceived > 0 && now < _timeout);
-        require(_beneficiary != address(0) && _beneficiary != address(this));
-        tokenToTokenOut(_buyTokenAddress, _beneficiary, _tokensSold, _minTokensReceived);
     }
 
     // Function called by another Uniswap exchange in Token to Token swaps and payments
