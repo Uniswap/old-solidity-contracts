@@ -82,3 +82,30 @@ def test_liquidity_divestment(t, uni_token, uniswap_exchange, contract_tester, a
     assert uniswap_exchange.getShares(t.a1) == 0
     assert uniswap_exchange.getShares(t.a2) == 0
     assert uniswap_exchange.totalShares() == 0
+
+def test_fee_payout(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
+    t.s.mine()
+    uni_token.mint(t.a1, 10*TOKEN)
+    uni_token.approve(uniswap_exchange.address, 10*TOKEN, sender=t.k1)
+    # PROVIDER initializes exchange
+    uniswap_exchange.initializeExchange(10*TOKEN, value=5*ETH, sender=t.k1)
+    timeout = t.s.head_state.timestamp + 300
+    # BUYER converts ETH to UNI
+    uniswap_exchange.ethToTokenSwap(1, timeout, value=1*ETH, sender=t.k2)
+    INVARIANT = 5*ETH*10*TOKEN
+    fee = 1*ETH/500
+    new_market_eth = 5*ETH + 1*ETH - fee
+    new_market_tokens = int(INVARIANT/new_market_eth)
+    purchased_tokens = 10*TOKEN - new_market_tokens
+    # Initial state of fee pool and market eth
+    assert uniswap_exchange.ethFeePool() == fee
+    assert uniswap_exchange.ethInMarket() == new_market_eth
+    assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
+    # Person adds fees to market
+    uniswap_exchange.addFeesToMarket()
+    # Updated state of fee pool and market eth
+    assert uniswap_exchange.ethFeePool() == 0
+    assert uniswap_exchange.ethInMarket() == new_market_eth + fee
+    assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
+    # Can't add fees to market if fee pool is empty
+    assert_tx_failed(t, lambda: uniswap_exchange.addFeesToMarket())
