@@ -76,6 +76,12 @@ def test_liquidity_divestment(t, uni_token, uniswap_exchange, contract_tester, a
     assert uniswap_exchange.getShares(t.a1) == 0
     assert uniswap_exchange.getShares(t.a2) == 2000
     assert uniswap_exchange.totalShares() == 2000
+    # Not enough shares
+    assert_tx_failed(t, lambda: uniswap_exchange.divestLiquidity(3000, sender=t.k2))
+    # Shares cannnot be zero
+    assert_tx_failed(t, lambda: uniswap_exchange.divestLiquidity(0, sender=t.k2))
+    # No missing parameters
+    assert_tx_failed(t, lambda: uniswap_exchange.divestLiquidity(sender=t.k2))
     # Second provider divests all 2000 of his remaining shares
     uniswap_exchange.divestLiquidity(2000, sender=t.k2)
     assert uniswap_exchange.invariant() == 0

@@ -13,14 +13,15 @@ contract ExchangeInterface {
     uint256 public ethFeePool;
     uint256 public tokenFeePool;
     address public tokenAddress;
+    mapping(address => uint256) shares;
     ERC20Interface token;
     function ethToTokenSwap(uint256 _minTokens, uint256 _timeout) external payable;
     function tokenToEthSwap(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout) external;
     function tokenToTokenSwap(address _buyTokenAddress, uint256 _tokensSold, uint256 _minTokensReceived, uint256 _timeout) external;
     function tokenToTokenIn(address buyer, uint256 _minTokens) external payable returns (bool);
-    function ethToToken(address buyer, uint256 ethReceived, uint256 minTokens) internal;
-    function tokenToEth(address buyer, uint256 tokenAmount, uint256 minEth) internal;
-    function tokenToTokenOut(address buyTokenAddress, address buyer, uint256 amount, uint256 minTokensReceived) internal;
+    function ethToToken(address buyer, uint256 ethIn, uint256 minTokensOut) internal;
+    function tokenToEth(address buyer, uint256 tokensIn, uint256 minEthOut) internal;
+    function tokenToTokenOut(address buyTokenAddress, address buyer, uint256 tokensIn, uint256 minTokensOut) internal;
     event TokenPurchase(address indexed buyer, uint256 tokensPurchased, uint256 ethSpent);
     event EthPurchase(address indexed buyer, uint256 ethPurchased, uint256 tokensSpent);
 }
@@ -33,7 +34,7 @@ contract UniswapExchange {
     event TokenPurchase(address indexed buyer, uint256 tokensPurchased, uint256 ethSpent);
     event EthPurchase(address indexed buyer, uint256 ethPurchased, uint256 tokensSpent);
     event Investment(address indexed liquidityProvider, uint256 indexed sharesPurchased);
-    event Divestment(address indexed liquidityProvider, uint256 indexed sharesSold);
+    event Divestment(address indexed liquidityProvider, uint256 indexed sharesBurned);
 
     /// CONSTANTS
     uint256 public constant FEE_RATE = 500;        //fee = 1/feeRate = 0.2%
@@ -47,7 +48,7 @@ contract UniswapExchange {
     uint256 public totalShares;
     address public tokenAddress;
     address public factoryAddress;
-    mapping(address => uint256) liquidityShares;
+    mapping(address => uint256) shares;
     ERC20Interface token;
     FactoryInterface factory;
 
@@ -79,7 +80,7 @@ contract UniswapExchange {
         ethInMarket = msg.value;
         tokensInMarket = tokenAmount;
         invariant = ethInMarket.mul(tokensInMarket);
-        liquidityShares[msg.sender] = 1000;
+        shares[msg.sender] = 1000;
         totalShares = 1000;
         require(token.transferFrom(msg.sender, address(this), tokenAmount));
     }
@@ -121,12 +122,12 @@ contract UniswapExchange {
     //edge case - someone quickly moves market ahead of tx, giving investor a bad deal - add min shares purchased
     function investLiquidity() external payable exchangeInitialized {
         require(msg.value > 0);
-        uint256 weiPerShare = ethInMarket.div(totalShares);
-        require(msg.value >= weiPerShare);
-        uint256 sharesPurchased = msg.value.div(weiPerShare);
+        uint256 ethPerShare = ethInMarket.div(totalShares);
+        require(msg.value >= ethPerShare);
+        uint256 sharesPurchased = msg.value.div(ethPerShare);
         uint256 tokensPerShare = tokensInMarket.div(totalShares);
         uint256 tokensRequired = sharesPurchased.mul(tokensPerShare);
-        liquidityShares[msg.sender] = liquidityShares[msg.sender].add(sharesPurchased);
+        shares[msg.sender] = shares[msg.sender].add(sharesPurchased);
         totalShares = totalShares.add(sharesPurchased);
         ethInMarket = ethInMarket.add(msg.value);
         tokensInMarket = tokensInMarket.add(tokensRequired);
@@ -135,28 +136,28 @@ contract UniswapExchange {
         require(token.transferFrom(msg.sender, address(this), tokensRequired));
     }
 
-    function divestLiquidity(uint256 sharesSold) external {
-        require(liquidityShares[msg.sender] >= sharesSold && sharesSold > 0);
-        liquidityShares[msg.sender] = liquidityShares[msg.sender].sub(sharesSold);
-        uint256 weiPerShare = ethInMarket.div(totalShares);
+    function divestLiquidity(uint256 sharesBurned) external {
+        require(sharesBurned > 0);
+        shares[msg.sender] = shares[msg.sender].sub(sharesBurned);
+        uint256 ethPerShare = ethInMarket.div(totalShares);
         uint256 tokensPerShare = tokensInMarket.div(totalShares);
-        uint256 weiDivested = weiPerShare.mul(sharesSold);
-        uint256 tokensDivested = tokensPerShare.mul(sharesSold);
-        totalShares = totalShares.sub(sharesSold);
-        ethInMarket = ethInMarket.sub(weiDivested);
+        uint256 ethDivested = ethPerShare.mul(sharesBurned);
+        uint256 tokensDivested = tokensPerShare.mul(sharesBurned);
+        totalShares = totalShares.sub(sharesBurned);
+        ethInMarket = ethInMarket.sub(ethDivested);
         tokensInMarket = tokensInMarket.sub(tokensDivested);
-        if (sharesSold == totalShares) {
+        if (sharesBurned == totalShares) {
             invariant == 0;
         } else {
             invariant = ethInMarket.mul(tokensInMarket);
         }
-        Divestment(msg.sender, sharesSold);
+        Divestment(msg.sender, sharesBurned);
         require(token.transfer(msg.sender, tokensDivested));
-        msg.sender.transfer(weiDivested);
+        msg.sender.transfer(ethDivested);
     }
 
-    function getShares(address provider) external view returns(uint256 shares) {
-        return liquidityShares[provider];
+    function getShares(address provider) external view returns(uint256 _shares) {
+        return shares[provider];
     }
 
     /// PUBLIC FUNCTIONS
@@ -173,40 +174,63 @@ contract UniswapExchange {
     }
 
     /// INTERNAL FUNCTIONS
-    function ethToToken(address buyer, uint256 ethReceived, uint256 minTokens) internal exchangeInitialized {
-        uint256 fee = ethReceived.div(FEE_RATE);
-        uint256 ethSold = ethReceived.sub(fee);
+    function ethToToken(
+        address buyer,
+        uint256 ethIn,
+        uint256 minTokensOut
+    )
+        internal
+        exchangeInitialized
+    {
+        uint256 fee = ethIn.div(FEE_RATE);
+        uint256 ethSold = ethIn.sub(fee);
         uint256 newEthInMarket = ethInMarket.add(ethSold);
         uint256 newTokensInMarket = invariant.div(newEthInMarket);
-        uint256 purchasedTokens = tokensInMarket.sub(newTokensInMarket);
-        require(purchasedTokens >= minTokens && purchasedTokens <= tokensInMarket);
+        uint256 tokensOut = tokensInMarket.sub(newTokensInMarket);
+        require(tokensOut >= minTokensOut && tokensOut <= tokensInMarket);
         ethFeePool = ethFeePool.add(fee);
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
-        TokenPurchase(buyer, purchasedTokens, ethSold);
-        require(token.transfer(buyer, purchasedTokens));
+        TokenPurchase(buyer, tokensOut, ethSold);
+        require(token.transfer(buyer, tokensOut));
     }
 
-    function tokenToEth(address buyer, uint256 tokenAmount, uint256 minEth) internal exchangeInitialized {
-        uint256 fee = tokenAmount.div(FEE_RATE);
-        uint256 tokensSold = tokenAmount.sub(fee);
+    function tokenToEth(
+        address buyer,
+        uint256 tokensIn,
+        uint256 minEthOut
+    )
+        internal
+        exchangeInitialized
+    {
+        uint256 fee = tokensIn.div(FEE_RATE);
+        uint256 tokensSold = tokensIn.sub(fee);
         uint256 newTokensInMarket = tokensInMarket.add(tokensSold);
         uint256 newEthInMarket = invariant.div(newTokensInMarket);
         uint256 purchasedEth = ethInMarket.sub(newEthInMarket);
-        require(purchasedEth >= minEth && purchasedEth <= ethInMarket);
+        require(purchasedEth >= minEthOut && purchasedEth <= ethInMarket);
         tokenFeePool = tokenFeePool.add(fee);
         tokensInMarket = newTokensInMarket;
         ethInMarket = newEthInMarket;
         EthPurchase(buyer, purchasedEth, tokensSold);
-        require(token.transferFrom(buyer, address(this), tokenAmount));
+        require(token.transferFrom(buyer, address(this), tokensIn));
         buyer.transfer(purchasedEth);
     }
 
-    function tokenToTokenOut(address buyTokenAddress, address buyer, uint256 amount, uint256 minTokensReceived) internal exchangeInitialized {
+    function tokenToTokenOut(
+        address buyTokenAddress,
+        address buyer,
+        uint256 tokensIn,
+        uint256 minTokensOut
+    )
+        internal
+        exchangeInitialized
+    {
+        require(buyTokenAddress != address(0) && buyTokenAddress != address(this));
         address exchangeAddress = factory.tokenToExchangeLookup(buyTokenAddress);
         require(exchangeAddress != address(0) && exchangeAddress != address(this));
-        uint256 fee = amount.div(FEE_RATE);
-        uint256 tokensSold = amount.sub(fee);
+        uint256 fee = tokensIn.div(FEE_RATE);
+        uint256 tokensSold = tokensIn.sub(fee);
         uint256 newTokensInMarket = tokensInMarket.add(tokensSold);
         uint256 newEthInMarket = invariant.div(newTokensInMarket);
         uint256 purchasedEth = ethInMarket.sub(newEthInMarket);
@@ -216,7 +240,7 @@ contract UniswapExchange {
         tokenFeePool = tokenFeePool.add(fee);
         tokensInMarket = newTokensInMarket;
         ethInMarket = newEthInMarket;
-        require(token.transferFrom(buyer, address(this), amount));
-        require(exchange.tokenToTokenIn.value(purchasedEth)(buyer, minTokensReceived));
+        require(token.transferFrom(buyer, address(this), tokensIn));
+        require(exchange.tokenToTokenIn.value(purchasedEth)(buyer, minTokensOut));
     }
 }
