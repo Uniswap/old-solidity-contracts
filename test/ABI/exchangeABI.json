@@ -1,31 +1,5 @@
 [
 	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_tokenAmount",
-				"type": "uint256"
-			},
-			{
-				"name": "_minEth",
-				"type": "uint256"
-			},
-			{
-				"name": "_timeout",
-				"type": "uint256"
-			},
-			{
-				"name": "_beneficiary",
-				"type": "address"
-			}
-		],
-		"name": "tokenToEthPayment",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"constant": true,
 		"inputs": [],
 		"name": "FEE_RATE",
@@ -66,6 +40,15 @@
 		"type": "function"
 	},
 	{
+		"constant": false,
+		"inputs": [],
+		"name": "addFeesToMarketPublic",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"constant": true,
 		"inputs": [],
 		"name": "totalShares",
@@ -80,90 +63,10 @@
 		"type": "function"
 	},
 	{
-		"constant": true,
-		"inputs": [],
-		"name": "ethFeePool",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"constant": false,
 		"inputs": [
 			{
-				"name": "_buyTokenAddress",
-				"type": "address"
-			},
-			{
-				"name": "_beneficiary",
-				"type": "address"
-			},
-			{
-				"name": "_tokensSold",
-				"type": "uint256"
-			},
-			{
-				"name": "_minTokensReceived",
-				"type": "uint256"
-			},
-			{
-				"name": "_timeout",
-				"type": "uint256"
-			}
-		],
-		"name": "tokenToTokenPayment",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "tokenFeePool",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_minTokens",
-				"type": "uint256"
-			},
-			{
-				"name": "_timeout",
-				"type": "uint256"
-			},
-			{
-				"name": "_beneficiary",
-				"type": "address"
-			}
-		],
-		"name": "ethToTokenPayment",
-		"outputs": [],
-		"payable": true,
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "sharesSold",
+				"name": "sharesBurned",
 				"type": "uint256"
 			}
 		],
@@ -203,6 +106,20 @@
 		],
 		"payable": true,
 		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "ethFees",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -276,6 +193,20 @@
 	{
 		"constant": true,
 		"inputs": [],
+		"name": "tokenFees",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
 		"name": "invariant",
 		"outputs": [
 			{
@@ -299,15 +230,6 @@
 		],
 		"payable": false,
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [],
-		"name": "addFeesToMarket",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -335,7 +257,7 @@
 		"name": "getShares",
 		"outputs": [
 			{
-				"name": "shares",
+				"name": "_shares",
 				"type": "uint256"
 			}
 		],
@@ -444,7 +366,7 @@
 			},
 			{
 				"indexed": true,
-				"name": "sharesSold",
+				"name": "sharesBurned",
 				"type": "uint256"
 			}
 		],

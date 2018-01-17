@@ -38,8 +38,8 @@ def test_uniswap_factory(t, uni_token, swap_token, uniswap_factory, contract_tes
     assert uni_token_exchange.ethInMarket() == 0
     assert uni_token_exchange.tokensInMarket() == 0
     assert uni_token_exchange.invariant() == 0
-    assert uni_token_exchange.ethFeePool() == 0
-    assert uni_token_exchange.tokenFeePool() == 0
+    assert uni_token_exchange.ethFees() == 0
+    assert uni_token_exchange.tokenFees() == 0
     assert u.remove_0x_head(uni_token_exchange.tokenAddress()) == uni_token.address.hex()
     assert uni_token_exchange.totalShares() == 0
     t.s.mine()

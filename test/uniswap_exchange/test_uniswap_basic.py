@@ -22,8 +22,8 @@ def test_exchange_initial_state(t, uni_token, uniswap_exchange, contract_tester,
     assert uniswap_exchange.ethInMarket() == 0
     assert uniswap_exchange.tokensInMarket() == 0
     assert uniswap_exchange.invariant() == 0
-    assert uniswap_exchange.ethFeePool() == 0
-    assert uniswap_exchange.tokenFeePool() == 0
+    assert uniswap_exchange.ethFees() == 0
+    assert uniswap_exchange.tokenFees() == 0
     assert u.remove_0x_head(uniswap_exchange.tokenAddress()) == uni_token.address.hex()
     assert uniswap_exchange.totalShares() == 0
 
@@ -63,7 +63,7 @@ def test_eth_to_token_swap(t, uni_token, uniswap_exchange, contract_tester, asse
     new_market_tokens = int(INVARIANT/new_market_eth)
     purchased_tokens = 10*TOKEN - new_market_tokens
     # Updated balances of UNI exchange
-    assert uniswap_exchange.ethFeePool() == fee
+    assert uniswap_exchange.ethFees() == fee
     assert uniswap_exchange.ethInMarket() == new_market_eth
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
     assert uniswap_exchange.tokensInMarket() == new_market_tokens + 167         #ERROR of 167
@@ -103,7 +103,7 @@ def test_tokens_to_eth_swap(t, uni_token, uniswap_exchange, contract_tester, ass
     new_market_eth = int(INVARIANT/new_market_tokens)
     purchased_eth = 5*ETH - new_market_eth
     # Updated balances of UNI exchange
-    assert uniswap_exchange.tokenFeePool() == fee
+    assert uniswap_exchange.tokenFees() == fee
     assert uniswap_exchange.tokensInMarket() == new_market_tokens
     assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens + fee
     assert uniswap_exchange.ethInMarket() == new_market_eth + 83         # rounding error of 83 wei
@@ -144,7 +144,7 @@ def test_fallback_eth_to_token_swap(t, uni_token, uniswap_exchange, contract_tes
     new_market_tokens = int(INVARIANT/new_market_eth)
     purchased_tokens = 10*TOKEN - new_market_tokens
     # Updated balances of UNI exchange
-    assert uniswap_exchange.ethFeePool() == fee
+    assert uniswap_exchange.ethFees() == fee
     assert uniswap_exchange.ethInMarket() == new_market_eth
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
     assert uniswap_exchange.tokensInMarket() == new_market_tokens + 167             #167 rounding error

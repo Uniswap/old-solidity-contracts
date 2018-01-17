@@ -10,8 +10,8 @@ contract ExchangeInterface {
     uint256 public ethInMarket;
     uint256 public tokensInMarket;
     uint256 public invariant;
-    uint256 public ethFeePool;
-    uint256 public tokenFeePool;
+    uint256 public ethFees;
+    uint256 public tokenFees;
     address public tokenAddress;
     mapping(address => uint256) shares;
     ERC20Interface token;
@@ -43,8 +43,8 @@ contract UniswapExchange {
     uint256 public ethInMarket;
     uint256 public tokensInMarket;
     uint256 public invariant;
-    uint256 public ethFeePool;
-    uint256 public tokenFeePool;
+    uint256 public ethFees;
+    uint256 public tokenFees;
     uint256 public totalShares;
     address public tokenAddress;
     address public factoryAddress;
@@ -122,6 +122,7 @@ contract UniswapExchange {
     //edge case - someone quickly moves market ahead of tx, giving investor a bad deal - add min shares purchased
     function investLiquidity() external payable exchangeInitialized {
         require(msg.value > 0);
+        addFeesToMarket();
         uint256 ethPerShare = ethInMarket.div(totalShares);
         require(msg.value >= ethPerShare);
         uint256 sharesPurchased = msg.value.div(ethPerShare);
@@ -137,6 +138,7 @@ contract UniswapExchange {
     }
 
     function divestLiquidity(uint256 sharesBurned) external {
+        addFeesToMarket();
         require(sharesBurned > 0);
         shares[msg.sender] = shares[msg.sender].sub(sharesBurned);
         uint256 ethPerShare = ethInMarket.div(totalShares);
@@ -162,15 +164,9 @@ contract UniswapExchange {
 
     /// PUBLIC FUNCTIONS
     // Add fees to market, increasing value of all shares
-    function addFeesToMarket() public {
-        require(ethFeePool != 0 || tokenFeePool != 0);
-        uint256 ethFees = ethFeePool;
-        uint256 tokenFees = tokenFeePool;
-        ethFeePool = 0;
-        tokenFeePool = 0;
-        ethInMarket = ethInMarket.add(ethFees);
-        tokensInMarket = tokensInMarket.add(tokenFees);
-        invariant = ethInMarket.mul(tokensInMarket);
+    function addFeesToMarketPublic() public {
+        require(ethFees != 0 || tokenFees != 0);
+        addFeesToMarket();
     }
 
     /// INTERNAL FUNCTIONS
@@ -188,7 +184,7 @@ contract UniswapExchange {
         uint256 newTokensInMarket = invariant.div(newEthInMarket);
         uint256 tokensOut = tokensInMarket.sub(newTokensInMarket);
         require(tokensOut >= minTokensOut && tokensOut <= tokensInMarket);
-        ethFeePool = ethFeePool.add(fee);
+        ethFees = ethFees.add(fee);
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
         TokenPurchase(buyer, tokensOut, ethSold);
@@ -207,14 +203,14 @@ contract UniswapExchange {
         uint256 tokensSold = tokensIn.sub(fee);
         uint256 newTokensInMarket = tokensInMarket.add(tokensSold);
         uint256 newEthInMarket = invariant.div(newTokensInMarket);
-        uint256 purchasedEth = ethInMarket.sub(newEthInMarket);
-        require(purchasedEth >= minEthOut && purchasedEth <= ethInMarket);
-        tokenFeePool = tokenFeePool.add(fee);
+        uint256 ethOut = ethInMarket.sub(newEthInMarket);
+        require(ethOut >= minEthOut && ethOut <= ethInMarket);
+        tokenFees = tokenFees.add(fee);
         tokensInMarket = newTokensInMarket;
         ethInMarket = newEthInMarket;
-        EthPurchase(buyer, purchasedEth, tokensSold);
+        EthPurchase(buyer, ethOut, tokensIn);
         require(token.transferFrom(buyer, address(this), tokensIn));
-        buyer.transfer(purchasedEth);
+        buyer.transfer(ethOut);
     }
 
     function tokenToTokenOut(
@@ -233,14 +229,26 @@ contract UniswapExchange {
         uint256 tokensSold = tokensIn.sub(fee);
         uint256 newTokensInMarket = tokensInMarket.add(tokensSold);
         uint256 newEthInMarket = invariant.div(newTokensInMarket);
-        uint256 purchasedEth = ethInMarket.sub(newEthInMarket);
-        require(purchasedEth <= ethInMarket);
+        uint256 ethOut = ethInMarket.sub(newEthInMarket);
+        require(ethOut <= ethInMarket);
         ExchangeInterface exchange = ExchangeInterface(exchangeAddress);
-        EthPurchase(buyer, purchasedEth, tokensSold);
-        tokenFeePool = tokenFeePool.add(fee);
+        EthPurchase(buyer, ethOut, tokensSold);
+        tokenFees = tokenFees.add(fee);
         tokensInMarket = newTokensInMarket;
         ethInMarket = newEthInMarket;
         require(token.transferFrom(buyer, address(this), tokensIn));
-        require(exchange.tokenToTokenIn.value(purchasedEth)(buyer, minTokensOut));
+        require(exchange.tokenToTokenIn.value(ethOut)(buyer, minTokensOut));
+    }
+
+    function addFeesToMarket() internal {
+        if (ethFees != 0 || tokenFees != 0) {
+            uint256 newEth = ethFees;
+            uint256 newTokens = tokenFees;
+            ethFees = 0;
+            tokenFees = 0;
+            ethInMarket = ethInMarket.add(newEth);
+            tokensInMarket = tokensInMarket.add(newTokens);
+            invariant = ethInMarket.mul(tokensInMarket);
+        }
     }
 }

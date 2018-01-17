@@ -104,14 +104,14 @@ def test_fee_payout(t, uni_token, uniswap_exchange, contract_tester, assert_tx_f
     new_market_tokens = int(INVARIANT/new_market_eth)
     purchased_tokens = 10*TOKEN - new_market_tokens
     # Initial state of fee pool and market eth
-    assert uniswap_exchange.ethFeePool() == fee
+    assert uniswap_exchange.ethFees() == fee
     assert uniswap_exchange.ethInMarket() == new_market_eth
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
     # Person adds fees to market
-    uniswap_exchange.addFeesToMarket()
+    uniswap_exchange.addFeesToMarketPublic()
     # Updated state of fee pool and market eth
-    assert uniswap_exchange.ethFeePool() == 0
+    assert uniswap_exchange.ethFees() == 0
     assert uniswap_exchange.ethInMarket() == new_market_eth + fee
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
     # Can't add fees to market if fee pool is empty
-    assert_tx_failed(t, lambda: uniswap_exchange.addFeesToMarket())
+    assert_tx_failed(t, lambda: uniswap_exchange.addFeesToMarketPublic())

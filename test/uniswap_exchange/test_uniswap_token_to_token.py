@@ -60,7 +60,7 @@ def test_token_to_token_swap(t, uni_token, swap_token, uniswap_factory, contract
     uni_new_market_tokens = 10*TOKEN + 2*TOKEN - uni_fee
     uni_new_market_eth = int(UNI_INVARIANT/uni_new_market_tokens)
     ETH_TO_TUNNEL = 5*ETH - uni_new_market_eth
-    assert uni_exchange.tokenFeePool() == uni_fee
+    assert uni_exchange.tokenFees() == uni_fee
     assert uni_exchange.tokensInMarket() == uni_new_market_tokens
     assert uni_token.balanceOf(uni_exchange.address) == uni_new_market_tokens + uni_fee
     assert uni_exchange.ethInMarket() == uni_new_market_eth + 83      # rounding error = 83 wei
@@ -70,7 +70,7 @@ def test_token_to_token_swap(t, uni_token, swap_token, uniswap_factory, contract
     swap_new_market_eth = 5*ETH + ETH_TO_TUNNEL - swap_fee
     swap_new_market_tokens = int(SWAP_INVARIANT/swap_new_market_eth)
     SWAP_TO_BUYER = 20*TOKEN - swap_new_market_tokens
-    assert swap_exchange.ethFeePool() == swap_fee
+    assert swap_exchange.ethFees() == swap_fee
     assert swap_exchange.ethInMarket() == swap_new_market_eth - 83     # rounding error = 83 wei
     assert swap_exchange.tokensInMarket() == swap_new_market_tokens + 919       # 919 rounding error
     assert swap_token.balanceOf(swap_exchange.address) == swap_new_market_tokens + 919
