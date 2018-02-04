@@ -18,11 +18,13 @@ contract ExchangeInterface {
     function ethToTokenSwap(uint256 _minTokens, uint256 _timeout) external payable;
     function ethToTokenPayment(uint256 _minTokens, uint256 _timeout, address _beneficiary) external payable;
     function tokenToEthSwap(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout) external;
+    function tokenToEthPayment(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout, address _beneficiary) external;
     function tokenToTokenSwap(address _buyTokenAddress, uint256 _tokensSold, uint256 _minTokensReceived, uint256 _timeout) external;
+    function tokenToTokenPayment(address _buyTokenAddress, address _beneficiary, uint256 _tokensSold, uint256 _minTokensReceived, uint256 _timeout) external;
     function tokenToTokenIn(address buyer, uint256 _minTokens) external payable returns (bool);
-    function ethToToken(address buyer, uint256 ethIn, uint256 minTokensOut) internal;
-    function tokenToEth(address buyer, uint256 tokensIn, uint256 minEthOut) internal;
-    function tokenToTokenOut(address buyTokenAddress, address buyer, uint256 tokensIn, uint256 minTokensOut) internal;
+    function ethToToken(address buyer, address recipient, uint256 ethIn, uint256 minTokensOut) internal;
+    function tokenToEth(address buyer, address recipient, uint256 tokensIn, uint256 minEthOut) internal;
+    function tokenToTokenOut(address buyTokenAddress, address buyer, address recipient, uint256 tokensIn, uint256 minTokensOut) internal;
     event TokenPurchase(address indexed buyer, uint256 tokensPurchased, uint256 ethSpent);
     event EthPurchase(address indexed buyer, uint256 ethPurchased, uint256 tokensSpent);
 }
@@ -70,7 +72,7 @@ contract UniswapExchange {
     /// FALLBACK FUNCTION
     function() public payable {
         require(msg.value != 0);
-        ethToToken(msg.sender, msg.value, 1);
+        ethToToken(msg.sender, msg.sender, msg.value, 1);
     }
 
     /// EXTERNAL FUNCTIONS
@@ -89,20 +91,34 @@ contract UniswapExchange {
     // Buyer swaps ETH for Tokens
     function ethToTokenSwap(uint256 _minTokens, uint256 _timeout) external payable {
         require(msg.value > 0 && _minTokens > 0 && now < _timeout);
-        ethToToken(msg.sender, msg.value,  _minTokens);
+        ethToToken(msg.sender, msg.sender, msg.value,  _minTokens);
     }
 
     // Payer pays in ETH, beneficiary receives Tokens
     function ethToTokenPayment(uint256 _minTokens, uint256 _timeout, address _beneficiary) external payable {
         require(msg.value > 0 && _minTokens > 0 && now < _timeout);
         require(_beneficiary != address(0) && _beneficiary != address(this));
-        ethToToken(_beneficiary, msg.value,  _minTokens);
+        ethToToken(msg.sender, _beneficiary, msg.value,  _minTokens);
     }
 
     // Buyer swaps Tokens for ETH
     function tokenToEthSwap(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout) external {
         require(_tokenAmount > 0 && _minEth > 0 && now < _timeout);
-        tokenToEth(msg.sender, _tokenAmount, _minEth);
+        tokenToEth(msg.sender, msg.sender, _tokenAmount, _minEth);
+    }
+
+    // Payer pays in Tokens, beneficiary receives ETH
+    function tokenToEthPayment(
+        uint256 _tokenAmount,
+        uint256 _minEth,
+        uint256 _timeout,
+        address _beneficiary
+    )
+        external
+    {
+        require(_tokenAmount > 0 && _minEth > 0 && now < _timeout);
+        require(_beneficiary != address(0) && _beneficiary != address(this));
+        tokenToEth(msg.sender, _beneficiary, _tokenAmount, _minEth);
     }
 
     // Buyer swaps Tokens in current exchange for Tokens of provided address
@@ -115,15 +131,30 @@ contract UniswapExchange {
         external
     {
         require(_tokensSold > 0 && _minTokensReceived > 0 && now < _timeout);
-        tokenToTokenOut(_buyTokenAddress, msg.sender, _tokensSold, _minTokensReceived);
+        tokenToTokenOut(_buyTokenAddress, msg.sender, msg.sender, _tokensSold, _minTokensReceived);
+    }
+
+    // Payer pays in exchange Token, beneficiary receives Tokens of provided address
+    function tokenToTokenPayment(
+        address _buyTokenAddress,
+        address _beneficiary,
+        uint256 _tokensSold,
+        uint256 _minTokensReceived,
+        uint256 _timeout
+    )
+        external
+    {
+        require(_tokensSold > 0 && _minTokensReceived > 0 && now < _timeout);
+        require(_beneficiary != address(0) && _beneficiary != address(this));
+        tokenToTokenOut(_buyTokenAddress, msg.sender, _beneficiary, _tokensSold, _minTokensReceived);
     }
 
     // Function called by another Uniswap exchange in Token to Token swaps and payments
-    function tokenToTokenIn(address buyer, uint256 _minTokens) external payable returns (bool) {
+    function tokenToTokenIn(address recipient, uint256 _minTokens) external payable returns (bool) {
         require(msg.value > 0);
         address exchangeToken = factory.exchangeToTokenLookup(msg.sender);
         require(exchangeToken != address(0));   // Only a Uniswap exchange can call this function
-        ethToToken(buyer, msg.value, _minTokens);
+        ethToToken(msg.sender, recipient, msg.value, _minTokens);
         return true;
     }
 
@@ -184,6 +215,7 @@ contract UniswapExchange {
     /// INTERNAL FUNCTIONS
     function ethToToken(
         address buyer,
+        address recipient,
         uint256 ethIn,
         uint256 minTokensOut
     )
@@ -200,11 +232,12 @@ contract UniswapExchange {
         ethInMarket = newEthInMarket;
         tokensInMarket = newTokensInMarket;
         TokenPurchase(buyer, tokensOut, ethSold);
-        require(token.transfer(buyer, tokensOut));
+        require(token.transfer(recipient, tokensOut));
     }
 
     function tokenToEth(
         address buyer,
+        address recipient,
         uint256 tokensIn,
         uint256 minEthOut
     )
@@ -222,12 +255,13 @@ contract UniswapExchange {
         ethInMarket = newEthInMarket;
         EthPurchase(buyer, ethOut, tokensIn);
         require(token.transferFrom(buyer, address(this), tokensIn));
-        buyer.transfer(ethOut);
+        recipient.transfer(ethOut);
     }
 
     function tokenToTokenOut(
         address buyTokenAddress,
         address buyer,
+        address recipient,
         uint256 tokensIn,
         uint256 minTokensOut
     )
@@ -249,7 +283,7 @@ contract UniswapExchange {
         tokensInMarket = newTokensInMarket;
         ethInMarket = newEthInMarket;
         require(token.transferFrom(buyer, address(this), tokensIn));
-        require(exchange.tokenToTokenIn.value(ethOut)(buyer, minTokensOut));
+        require(exchange.tokenToTokenIn.value(ethOut)(recipient, minTokensOut));
     }
 
     function addFeesToMarket() internal {

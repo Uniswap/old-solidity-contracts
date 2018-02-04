@@ -1,5 +1,67 @@
 [
 	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_tokenAmount",
+				"type": "uint256"
+			},
+			{
+				"name": "_minEth",
+				"type": "uint256"
+			},
+			{
+				"name": "_timeout",
+				"type": "uint256"
+			},
+			{
+				"name": "_beneficiary",
+				"type": "address"
+			}
+		],
+		"name": "tokenToEthPayment",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "minShares",
+				"type": "uint256"
+			}
+		],
+		"name": "investLiquidity",
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "sharesBurned",
+				"type": "uint256"
+			},
+			{
+				"name": "minEth",
+				"type": "uint256"
+			},
+			{
+				"name": "minTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "divestLiquidity",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"constant": true,
 		"inputs": [],
 		"name": "FEE_RATE",
@@ -66,11 +128,27 @@
 		"constant": false,
 		"inputs": [
 			{
-				"name": "sharesBurned",
+				"name": "_buyTokenAddress",
+				"type": "address"
+			},
+			{
+				"name": "_beneficiary",
+				"type": "address"
+			},
+			{
+				"name": "_tokensSold",
+				"type": "uint256"
+			},
+			{
+				"name": "_minTokensReceived",
+				"type": "uint256"
+			},
+			{
+				"name": "_timeout",
 				"type": "uint256"
 			}
 		],
-		"name": "divestLiquidity",
+		"name": "tokenToTokenPayment",
 		"outputs": [],
 		"payable": false,
 		"stateMutability": "nonpayable",
@@ -78,8 +156,21 @@
 	},
 	{
 		"constant": false,
-		"inputs": [],
-		"name": "investLiquidity",
+		"inputs": [
+			{
+				"name": "_minTokens",
+				"type": "uint256"
+			},
+			{
+				"name": "_timeout",
+				"type": "uint256"
+			},
+			{
+				"name": "_beneficiary",
+				"type": "address"
+			}
+		],
+		"name": "ethToTokenPayment",
 		"outputs": [],
 		"payable": true,
 		"stateMutability": "payable",
@@ -89,7 +180,7 @@
 		"constant": false,
 		"inputs": [
 			{
-				"name": "buyer",
+				"name": "recipient",
 				"type": "address"
 			},
 			{
