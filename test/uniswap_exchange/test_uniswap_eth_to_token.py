@@ -156,3 +156,46 @@ def test_fallback_eth_to_token_swap(t, uni_token, uniswap_exchange, contract_tes
     assert_tx_failed(t, lambda: t.s.tx(to=uniswap_exchange.address, startgas=STARTGAS, sender=t.k2))
     # not enough gas
     assert_tx_failed(t, lambda: t.s.tx(to=uniswap_exchange.address, startgas=21000, value=1*ETH, sender=t.k2))
+
+def test_eth_to_token_payment(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
+    t.s.mine()
+    uni_token.mint(t.a1, 10*TOKEN)
+    uni_token.approve(uniswap_exchange.address, 10*TOKEN, sender=t.k1)
+    # PROVIDER (t.a1) initializes exchange
+    uniswap_exchange.initializeExchange(10*TOKEN, value=5*ETH, sender=t.k1)
+    timeout = t.s.head_state.timestamp + 300
+    # Starting balances of BUYER (t.a2)
+    assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000
+    assert uni_token.balanceOf(t.a2) == 0
+    # Starting balances of RECIPIENT (t.a3)
+    assert t.s.head_state.get_balance(t.a3) == 1000000000000000000000000000000
+    assert uni_token.balanceOf(t.a3) == 0
+    # BUYER sends ETH and RECIPIENT receives UNI
+    uniswap_exchange.ethToTokenPayment(1, timeout, t.a3, value=1*ETH, sender=t.k2)
+    INVARIANT = 5*ETH*10*TOKEN
+    fee = 1*ETH/500
+    new_market_eth = 5*ETH + 1*ETH - fee
+    new_market_tokens = int(INVARIANT/new_market_eth)
+    purchased_tokens = 10*TOKEN - new_market_tokens
+    # Updated balances of UNI exchange
+    assert uniswap_exchange.ethFees() == fee
+    assert uniswap_exchange.ethInMarket() == new_market_eth
+    assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
+    assert uniswap_exchange.tokensInMarket() == new_market_tokens + 167         #ERROR of 167
+    assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens + 167
+    # Final balances of BUYER
+    assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
+    assert uni_token.balanceOf(t.a2) == 0
+    # Final balances of RECIPIENT
+    assert t.s.head_state.get_balance(t.a3) == 1000000000000000000000000000000
+    assert uni_token.balanceOf(t.a3) == purchased_tokens - 167
+    # Min tokens = 0
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenPayment(0, timeout, t.a3, value=1*ETH, sender=t.k2))
+    # Purchased tokens < min tokens
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenPayment(purchased_tokens + 1, timeout, t.a3, value=1*ETH, sender=t.k2))
+    # Timeout = 0
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenPayment(1, 0, t.a3, value=1*ETH, sender=t.k2))
+    # Timeout < now
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenPayment(1, timeout - 301, t.a3, value=1*ETH, sender=t.k2))
+    # msg.value = 0
+    assert_tx_failed(t, lambda: uniswap_exchange.ethToTokenPayment(1, timeout, t.a3, value=0, sender=t.k2))
