@@ -2,7 +2,7 @@ import pytest
 from ethereum import utils as u
 
 """
-    run test with:     python3.6 -m pytest -v
+    run test with:     pytest -v
 """
 
 ETH = 10**18
@@ -133,10 +133,12 @@ def test_fee_invest_payout(t, uni_token, uniswap_exchange, contract_tester, asse
     purchased_tokens = 10*TOKEN - new_market_tokens
     # Initial state of fee pool and market eth
     assert uniswap_exchange.ethFees() == fee
+    assert uniswap_exchange.ethInMarket() == new_market_eth
     uni_token.mint(t.a2, 30*TOKEN)
     uni_token.approve(uniswap_exchange.address, 30*TOKEN, sender=t.k2)
     uniswap_exchange.investLiquidity(1, value=15*ETH, sender=t.k2)
     assert uniswap_exchange.ethFees() == 0
+    assert uniswap_exchange.ethInMarket() == new_market_eth + 15*ETH + fee
 
 def test_fee_divest_payout(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()
@@ -154,5 +156,7 @@ def test_fee_divest_payout(t, uni_token, uniswap_exchange, contract_tester, asse
     purchased_tokens = 10*TOKEN - new_market_tokens
     # Initial state of fee pool and market eth
     assert uniswap_exchange.ethFees() == fee
-    uniswap_exchange.divestLiquidity(10, 1, 1, sender=t.k1)
+    assert uniswap_exchange.ethInMarket() == new_market_eth
+    uniswap_exchange.divestLiquidity(500, 1, 1, sender=t.k1)
     assert uniswap_exchange.ethFees() == 0
+    assert uniswap_exchange.ethInMarket() == (new_market_eth + fee)/2

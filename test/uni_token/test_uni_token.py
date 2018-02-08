@@ -2,7 +2,7 @@ import pytest
 from ethereum import utils as u
 
 """
-    run test with:     python3.6 -m pytest -v
+    run test with:     pytest -v
 """
 
 TOKEN_VALUE_1 = 100*10**18

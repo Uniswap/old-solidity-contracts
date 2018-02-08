@@ -4,7 +4,7 @@ import json
 import os
 
 """
-    run test with:     python3.6 -m pytest -v
+    run test with:     pytest -v
 """
 
 ETH = 10**18
