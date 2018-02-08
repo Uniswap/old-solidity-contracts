@@ -89,20 +89,39 @@ contract UniswapExchange {
     }
 
     // Buyer swaps ETH for Tokens
-    function ethToTokenSwap(uint256 _minTokens, uint256 _timeout) external payable {
+    function ethToTokenSwap(
+        uint256 _minTokens,
+        uint256 _timeout
+    )
+        external
+        payable
+    {
         require(msg.value > 0 && _minTokens > 0 && now < _timeout);
         ethToToken(msg.sender, msg.sender, msg.value,  _minTokens);
     }
 
     // Payer pays in ETH, beneficiary receives Tokens
-    function ethToTokenPayment(uint256 _minTokens, uint256 _timeout, address _beneficiary) external payable {
+    function ethToTokenPayment(
+        uint256 _minTokens,
+        uint256 _timeout,
+        address _beneficiary
+    )
+        external
+        payable
+    {
         require(msg.value > 0 && _minTokens > 0 && now < _timeout);
         require(_beneficiary != address(0) && _beneficiary != address(this));
         ethToToken(msg.sender, _beneficiary, msg.value,  _minTokens);
     }
 
     // Buyer swaps Tokens for ETH
-    function tokenToEthSwap(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout) external {
+    function tokenToEthSwap(
+        uint256 _tokenAmount,
+        uint256 _minEth,
+        uint256 _timeout
+    )
+        external
+    {
         require(_tokenAmount > 0 && _minEth > 0 && now < _timeout);
         tokenToEth(msg.sender, msg.sender, _tokenAmount, _minEth);
     }
@@ -150,7 +169,14 @@ contract UniswapExchange {
     }
 
     // Function called by another Uniswap exchange in Token to Token swaps and payments
-    function tokenToTokenIn(address recipient, uint256 _minTokens) external payable returns (bool) {
+    function tokenToTokenIn(
+        address recipient,
+        uint256 _minTokens
+    )
+        external
+        payable
+        returns (bool)
+    {
         require(msg.value > 0);
         address exchangeToken = factory.exchangeToTokenLookup(msg.sender);
         require(exchangeToken != address(0));   // Only a Uniswap exchange can call this function
@@ -159,7 +185,13 @@ contract UniswapExchange {
     }
 
     // Invest liquidity and receive market shares
-    function investLiquidity(uint256 minShares) external payable exchangeInitialized {
+    function investLiquidity(
+        uint256 minShares
+    )
+        external
+        payable
+        exchangeInitialized
+    {
         require(msg.value > 0 && minShares > 0);
         addFeesToMarket();
         uint256 ethPerShare = ethInMarket.div(totalShares);
@@ -178,7 +210,13 @@ contract UniswapExchange {
     }
 
     // Divest market shares and receive liquidity
-    function divestLiquidity(uint256 sharesBurned, uint256 minEth, uint256 minTokens) external {
+    function divestLiquidity(
+        uint256 sharesBurned,
+        uint256 minEth,
+        uint256 minTokens
+    )
+        external
+    {
         require(sharesBurned > 0);
         shares[msg.sender] = shares[msg.sender].sub(sharesBurned);
         addFeesToMarket();
@@ -201,7 +239,13 @@ contract UniswapExchange {
     }
 
     // View share balance of an address
-    function getShares(address provider) external view returns(uint256 _shares) {
+    function getShares(
+        address provider
+    )
+        external
+        view
+        returns(uint256 _shares)
+    {
         return shares[provider];
     }
 
