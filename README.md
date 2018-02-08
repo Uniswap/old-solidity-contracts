@@ -1,23 +1,23 @@
 ## Installation:
 
-#### macOS Sierra
+#### Tested in macOS High Sierra
 
 1) Install python 3 and upgrade pip (requies [Homebrew](https://brew.sh/))
 ```
-$ xcode-select --install
+$ xcode-select --install (if needed)
 $ brew install python3
-$ pip3 install --upgrade pip
 $ brew install pkg-config autoconf automake libyaml
 ```
 
 2) Clone repository
 ```
-$ git clone https://gitlab.com/haydena/automated-market-maker.git
-$ cd automated-market-maker
+$ git clone https://github.com/Uniswap/contracts.git
+$ cd contracts
 ```
 
 3) Setup virtual environment (recommended)
 ```
+$ pip3 install --upgrade pip
 $ pip3 install virtualenv
 $ virtualenv uniswap_environment
 $ source uniswap_environment/bin/activate
@@ -50,9 +50,9 @@ $ pytest -v
 
 6) Python testing - IN PROGRESS
 
-7) Switch liquidity shares to ERC20 tokens? - NOT STARTED
+7) Switch liquidity shares to ERC20 tokens? - (might not implement)
 
-8) Implement single token for all exchanges? - NOT STARTED
+8) Implement single token for all exchanges? - (might not implement)
 
 9) ENS support - IN PROGRESS
 
