@@ -46,7 +46,7 @@ $ pytest -v
 
 4) ERC20 to ERC20 exchanges (tunneling between exchanges) - COMPLETE
 
-5) Fine tuning and improvements to smart contracts - IN PROGRESS
+5) Anything to anything payments (similar to ShapeShift) - COMPLETE
 
 6) Python testing - IN PROGRESS
 
@@ -54,14 +54,16 @@ $ pytest -v
 
 8) Implement single token for all exchanges? - (might not implement)
 
-9) ENS support - IN PROGRESS
+9) Fine tuning and improvements to smart contracts - IN PROGRESS
 
 10) Frontend - IN PROGRESS
 
-11) Testnet launch (Early/mid February)
+11) ENS support - IN PROGRESS
 
-12) Mainet Bounty
+12) Testnet launch (Early/mid February)
 
-13) Audit (Late February/March)
+13) Mainet Bounties
 
-14) Mainet launch - April 2018?
+14) Audit (Late February/March)
+
+15) Mainet launch - April 2018?
