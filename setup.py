@@ -17,7 +17,6 @@ setup(
         'ethereum==2.1.5',
         'web3',
         'py-solc',
-        'click==6.7',
         'pytest'
     ],
 )
