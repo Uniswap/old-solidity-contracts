@@ -7,7 +7,7 @@ dist/
 uniswap.egg-info/
 .pytest_cache/
 pyethereum/
-uniswap_python_environment/
+uniswap_environment/
 notes.py
 .soliumignore
 .soliumrc.json
