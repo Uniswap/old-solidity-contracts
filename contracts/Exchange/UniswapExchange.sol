@@ -4,32 +4,6 @@ import "./ERC20Interface.sol";
 import "./UniswapFactory.sol";
 
 
-// Inteface for TokenToToken swaps across exchanges - does not have all methods
-contract ExchangeInterface {
-    uint public FEE_RATE;
-    uint256 public ethInMarket;
-    uint256 public tokensInMarket;
-    uint256 public invariant;
-    uint256 public ethFees;
-    uint256 public tokenFees;
-    address public tokenAddress;
-    mapping(address => uint256) shares;
-    ERC20Interface token;
-    function ethToTokenSwap(uint256 _minTokens, uint256 _timeout) external payable;
-    function ethToTokenPayment(uint256 _minTokens, uint256 _timeout, address _beneficiary) external payable;
-    function tokenToEthSwap(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout) external;
-    function tokenToEthPayment(uint256 _tokenAmount, uint256 _minEth, uint256 _timeout, address _beneficiary) external;
-    function tokenToTokenSwap(address _buyTokenAddress, uint256 _tokensSold, uint256 _minTokensReceived, uint256 _timeout) external;
-    function tokenToTokenPayment(address _buyTokenAddress, address _beneficiary, uint256 _tokensSold, uint256 _minTokensReceived, uint256 _timeout) external;
-    function tokenToTokenIn(address buyer, uint256 _minTokens) external payable returns (bool);
-    function ethToToken(address buyer, address recipient, uint256 ethIn, uint256 minTokensOut) internal;
-    function tokenToEth(address buyer, address recipient, uint256 tokensIn, uint256 minEthOut) internal;
-    function tokenToTokenOut(address buyTokenAddress, address buyer, address recipient, uint256 tokensIn, uint256 minTokensOut) internal;
-    event TokenPurchase(address indexed buyer, uint256 tokensPurchased, uint256 ethSpent);
-    event EthPurchase(address indexed buyer, uint256 ethPurchased, uint256 tokensSpent);
-}
-
-
 contract UniswapExchange {
     using SafeMath for uint256;
 
@@ -321,7 +295,7 @@ contract UniswapExchange {
         uint256 newEthInMarket = invariant.div(newTokensInMarket);
         uint256 ethOut = ethInMarket.sub(newEthInMarket);
         require(ethOut <= ethInMarket);
-        ExchangeInterface exchange = ExchangeInterface(exchangeAddress);
+        UniswapExchange exchange = UniswapExchange(exchangeAddress);
         EthPurchase(buyer, ethOut, tokensSold);
         tokenFees = tokenFees.add(fee);
         tokensInMarket = newTokensInMarket;
