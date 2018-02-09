@@ -52,7 +52,7 @@ def test_token_to_token_swap(t, uni_token, swap_token, uniswap_factory, contract
     assert uni_token.balanceOf(t.a3) == 10*TOKEN
     assert swap_token.balanceOf(t.a3) == 0
     # BUYER converts  UNI to SWAP
-    uni_exchange.tokenToTokenSwap(swap_token.address, 2*TOKEN, 1, timeout, sender=t.k3)
+    uni_exchange.tokenToTokenSwap(swap_token.address, 2*TOKEN, 1, timeout, startgas=165000, sender=t.k3)
     # Updated state of UNI exchange
     uni_fee = 4000000000000000                          # 2*TOKEN/500
     uni_new_market_tokens = 11996000000000000000        # 10*TOKEN + 2*TOKEN - uni_fee
