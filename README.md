@@ -1,3 +1,6 @@
+## How it works
+https://hackmd.io/Tlf08KuPTbqsHLKk5hzAvA
+
 ## Installation:
 
 #### Tested in macOS High Sierra
