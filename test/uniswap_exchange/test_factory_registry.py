@@ -35,8 +35,8 @@ def test_uniswap_factory(t, uni_token, swap_token, uniswap_factory, contract_tes
     assert  u.remove_0x_head(uniswap_factory.exchangeToTokenLookup(uni_exchange_address)) == uni_token.address.hex()
     # Test UNI token exchange initial state
     assert uni_token_exchange.FEE_RATE() == 500
-    assert uni_token_exchange.ethInMarket() == 0
-    assert uni_token_exchange.tokensInMarket() == 0
+    assert uni_token_exchange.ethPool() == 0
+    assert uni_token_exchange.tokenPool() == 0
     assert uni_token_exchange.invariant() == 0
     assert uni_token_exchange.ethFees() == 0
     assert uni_token_exchange.tokenFees() == 0

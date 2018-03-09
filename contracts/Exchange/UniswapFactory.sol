@@ -20,13 +20,13 @@ contract UniswapFactory is FactoryInterface {
     mapping(address => address) tokenToExchange;
     mapping(address => address) exchangeToToken;
 
-    function createExchange(address token) public returns (address exchange) {
-        require(tokenToExchange[token] == address(0));      //There can only be one exchange per token
-        require(token != address(0) && token != address(this));
-        UniswapExchange newExchange = new UniswapExchange(token);
-        tokenList.push(token);
-        tokenToExchange[token] = newExchange;
-        exchangeToToken[newExchange] = token;
+    function createExchange(address _token) public returns (address exchange) {
+        require(tokenToExchange[_token] == address(0));             //There can only be one exchange per token
+        require(_token != address(0) && _token != address(this));
+        UniswapExchange newExchange = new UniswapExchange(_token);
+        tokenList.push(_token);
+        tokenToExchange[_token] = newExchange;
+        exchangeToToken[newExchange] = _token;
         return newExchange;
     }
 
@@ -34,11 +34,11 @@ contract UniswapFactory is FactoryInterface {
         return tokenList.length;
     }
 
-    function tokenToExchangeLookup(address token) public view returns (address exchange) {
-        return tokenToExchange[token];
+    function tokenToExchangeLookup(address _token) public view returns (address exchange) {
+        return tokenToExchange[_token];
     }
 
-    function exchangeToTokenLookup(address exchange) public view returns (address token) {
-        return exchangeToToken[exchange];
+    function exchangeToTokenLookup(address _exchange) public view returns (address token) {
+        return exchangeToToken[_exchange];
     }
 }

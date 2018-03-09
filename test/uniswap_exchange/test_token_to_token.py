@@ -59,9 +59,9 @@ def test_token_to_token_swap(t, uni_token, swap_token, uniswap_factory, contract
     uni_new_market_eth = 4168056018672890963            # (10*TOKEN*5*ETH)/uni_new_market_tokens)
     ETH_TO_TUNNEL = 831943981327109037                  # 5*ETH - uni_new_market_eth
     assert uni_exchange.tokenFees() == uni_fee
-    assert uni_exchange.tokensInMarket() == uni_new_market_tokens
+    assert uni_exchange.tokenPool() == uni_new_market_tokens
     assert uni_token.balanceOf(uni_exchange.address) == uni_new_market_tokens + uni_fee
-    assert uni_exchange.ethInMarket() == uni_new_market_eth
+    assert uni_exchange.ethPool() == uni_new_market_eth
     assert t.s.head_state.get_balance(uni_exchange.address) == uni_new_market_eth
     # Updated State of SWAP exchange
     swap_fee = 1663887962654218                         # ETH_TO_TUNNEL/500
@@ -69,8 +69,8 @@ def test_token_to_token_swap(t, uni_token, swap_token, uniswap_factory, contract
     swap_new_market_tokens = 17151834628633326487       # (20*TOKEN*5*ETH)/swap_new_market_eth)
     SWAP_TO_BUYER = 2848165371366673513                 # 20*TOKEN - swap_new_market_tokens
     assert swap_exchange.ethFees() == swap_fee
-    assert swap_exchange.ethInMarket() == swap_new_market_eth
-    assert swap_exchange.tokensInMarket() == swap_new_market_tokens
+    assert swap_exchange.ethPool() == swap_new_market_eth
+    assert swap_exchange.tokenPool() == swap_new_market_tokens
     assert swap_token.balanceOf(swap_exchange.address) == swap_new_market_tokens
     assert t.s.head_state.get_balance(swap_exchange.address) == swap_new_market_eth + swap_fee
     # Final balances of BUYER
@@ -133,9 +133,9 @@ def test_token_to_token_payment(t, uni_token, swap_token, uniswap_factory, contr
     uni_new_market_eth = 4168056018672890963            # (10*TOKEN*5*ETH)/uni_new_market_tokens)
     ETH_TO_TUNNEL = 831943981327109037                  # 5*ETH - uni_new_market_eth
     assert uni_exchange.tokenFees() == uni_fee
-    assert uni_exchange.tokensInMarket() == uni_new_market_tokens
+    assert uni_exchange.tokenPool() == uni_new_market_tokens
     assert uni_token.balanceOf(uni_exchange.address) == uni_new_market_tokens + uni_fee
-    assert uni_exchange.ethInMarket() == uni_new_market_eth
+    assert uni_exchange.ethPool() == uni_new_market_eth
     assert t.s.head_state.get_balance(uni_exchange.address) == uni_new_market_eth
     # Updated State of SWAP exchange
     swap_fee = 1663887962654218                         # ETH_TO_TUNNEL/500
@@ -143,8 +143,8 @@ def test_token_to_token_payment(t, uni_token, swap_token, uniswap_factory, contr
     swap_new_market_tokens = 17151834628633326487       # (20*TOKEN*5*ETH)/swap_new_market_eth)
     SWAP_TO_BUYER = 2848165371366673513                 # 20*TOKEN - swap_new_market_tokens
     assert swap_exchange.ethFees() == swap_fee
-    assert swap_exchange.ethInMarket() == swap_new_market_eth
-    assert swap_exchange.tokensInMarket() == swap_new_market_tokens
+    assert swap_exchange.ethPool() == swap_new_market_eth
+    assert swap_exchange.tokenPool() == swap_new_market_tokens
     assert swap_token.balanceOf(swap_exchange.address) == swap_new_market_tokens
     assert t.s.head_state.get_balance(swap_exchange.address) == swap_new_market_eth + swap_fee
     # Final balances of BUYER

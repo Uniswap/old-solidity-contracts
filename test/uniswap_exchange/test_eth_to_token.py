@@ -35,9 +35,9 @@ def test_eth_to_token_swap(t, uni_token, uniswap_exchange, contract_tester, asse
     new_market_tokens = 8336112037345781927               # new_market_tokens = (5*ETH*10*TOKEN)/new_market_eth
     purchased_tokens = 1663887962654218073                # purchased_tokens = 10*TOKEN - new_market_tokens
     assert uniswap_exchange.ethFees() == fee
-    assert uniswap_exchange.ethInMarket() == new_market_eth
+    assert uniswap_exchange.ethPool() == new_market_eth
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
-    assert uniswap_exchange.tokensInMarket() == new_market_tokens
+    assert uniswap_exchange.tokenPool() == new_market_tokens
     assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens
     # Final balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
@@ -71,9 +71,9 @@ def test_fallback_eth_to_token_swap(t, uni_token, uniswap_exchange, contract_tes
     new_market_tokens = 8336112037345781927               # new_market_tokens = (5*ETH*10*TOKEN)/new_market_eth
     purchased_tokens = 1663887962654218073                # purchased_tokens = 10*TOKEN - new_market_tokens
     assert uniswap_exchange.ethFees() == fee
-    assert uniswap_exchange.ethInMarket() == new_market_eth
+    assert uniswap_exchange.ethPool() == new_market_eth
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
-    assert uniswap_exchange.tokensInMarket() == new_market_tokens
+    assert uniswap_exchange.tokenPool() == new_market_tokens
     assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens
     # Final balances of BUYER
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
@@ -103,9 +103,9 @@ def test_eth_to_token_payment(t, uni_token, uniswap_exchange, contract_tester, a
     new_market_tokens = 8336112037345781927               # new_market_tokens = (5*ETH*10*TOKEN)/new_market_eth
     purchased_tokens = 1663887962654218073                # purchased_tokens = 10*TOKEN - new_market_tokens
     assert uniswap_exchange.ethFees() == fee
-    assert uniswap_exchange.ethInMarket() == new_market_eth
+    assert uniswap_exchange.ethPool() == new_market_eth
     assert t.s.head_state.get_balance(uniswap_exchange.address) == new_market_eth + fee
-    assert uniswap_exchange.tokensInMarket() == new_market_tokens
+    assert uniswap_exchange.tokenPool() == new_market_tokens
     assert uni_token.balanceOf(uniswap_exchange.address) == new_market_tokens
     # Final balances of BUYER and RECIPIENT
     assert t.s.head_state.get_balance(t.a2) == 1000000000000000000000000000000 - 1*ETH
