@@ -167,7 +167,7 @@ contract UniswapExchange {
         exchangeInitialized
     {
         require(msg.value > 0 && _minShares > 0);
-        addFeesToMarket();
+        addFeesToPools();
         uint256 ethPerShare = ethPool.div(totalShares);
         require(msg.value >= ethPerShare);
         uint256 sharesPurchased = msg.value.div(ethPerShare);
@@ -193,7 +193,7 @@ contract UniswapExchange {
     {
         require(_sharesBurned > 0);
         shares[msg.sender] = shares[msg.sender].sub(_sharesBurned);
-        addFeesToMarket();
+        addFeesToPools();
         uint256 ethPerShare = ethPool.div(totalShares);
         uint256 tokensPerShare = tokenPool.div(totalShares);
         uint256 ethDivested = ethPerShare.mul(_sharesBurned);
@@ -226,7 +226,7 @@ contract UniswapExchange {
     /// PUBLIC FUNCTIONS
     function addFeesToMarketPublic() public {
         require(ethFees != 0 || tokenFees != 0);
-        addFeesToMarket();
+        addFeesToPools();
     }
 
     /// INTERNAL FUNCTIONS
@@ -303,7 +303,7 @@ contract UniswapExchange {
         require(exchange.tokenToTokenIn.value(ethOut)(recipient, minTokensOut));
     }
 
-    function addFeesToMarket() internal {
+    function addFeesToPools() internal {
         if (ethFees > 0 || tokenFees > 0) {
             uint256 newEth = ethFees;
             uint256 newTokens = tokenFees;

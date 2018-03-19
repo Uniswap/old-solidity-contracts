@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.20;
 
 
 contract ERC20Token {
@@ -162,8 +162,14 @@ contract MintableToken is StandardToken, Ownable {
 }
 
 
-contract UniToken is MintableToken {
-    string public constant name = "UNI Test Token";
-    string public constant symbol = "UNI";
-    uint8 public constant decimals = 18;
+contract TestToken is MintableToken {
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+
+    function TestToken(string _name, string _symbol, uint8 _decimals) public {
+        name = _name;
+        symbol = _symbol;
+        decimals = _decimals;
+    }
 }

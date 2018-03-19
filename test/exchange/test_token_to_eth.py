@@ -5,17 +5,8 @@ from ethereum import utils as u
     run test with:     pytest -v
 """
 
-# Constants
 ETH = 10**18
 TOKEN = 10**18
-
-@pytest.fixture
-def uni_token(t, contract_tester):
-    return contract_tester('Token/UniToken.sol', args=[])
-
-@pytest.fixture
-def uniswap_exchange(t, contract_tester, uni_token):
-    return contract_tester('Exchange/UniswapExchange.sol', args=[uni_token.address])
 
 def test_tokens_to_eth_swap(t, uni_token, uniswap_exchange, contract_tester, assert_tx_failed):
     t.s.mine()

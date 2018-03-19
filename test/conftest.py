@@ -1,9 +1,11 @@
 import os
 import pytest
+import json
 from ethereum.tools import _solidity, tester
 from ethereum.abi import ContractTranslator
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
+EXCHANGE_ABI = os.path.join(OWN_DIR, 'ABI/exchangeABI.json')
 
 def get_dirs(path):
     abs_contract_path = os.path.realpath(os.path.join(OWN_DIR, '..', 'contracts'))
@@ -43,3 +45,24 @@ def assert_tx_failed():
             function_to_test()
         tester.s.revert(initial_state)
     return assert_tx_failed
+
+@pytest.fixture
+def uni_token(t, contract_tester):
+    return contract_tester('Token/TestToken.sol', args=["UNI Token", "UNI", 18])
+
+@pytest.fixture
+def swap_token(t, contract_tester):
+    return contract_tester('Token/TestToken.sol', args=["SWAP Token", "SWT", 18])
+
+@pytest.fixture
+def uniswap_exchange(t, contract_tester, uni_token):
+    return contract_tester('Exchange/UniswapExchange.sol', args=[uni_token.address])
+
+@pytest.fixture
+def uniswap_factory(t, contract_tester):
+    return contract_tester('Exchange/UniswapFactory.sol', args=[])
+
+@pytest.fixture
+def exchange_abi(t, contract_tester):
+    abi = json.load(open(EXCHANGE_ABI))
+    return abi

@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'ethereum==2.1.5',
+        'ethereum',
         'web3',
         'py-solc',
         'pytest'
