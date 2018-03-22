@@ -10,6 +10,7 @@ contract FactoryInterface {
     function getExchangeCount() public view returns (uint exchangeCount);
     function tokenToExchangeLookup(address token) public view returns (address exchange);
     function exchangeToTokenLookup(address token) public view returns (address exchange);
+    event ExchangeLaunch(address indexed exchange, address indexed token);
 }
 
 

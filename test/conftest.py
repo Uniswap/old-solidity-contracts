@@ -52,11 +52,7 @@ def uni_token(t, contract_tester):
 
 @pytest.fixture
 def swap_token(t, contract_tester):
-    return contract_tester('Token/TestToken.sol', args=["SWAP Token", "SWT", 18])
-
-@pytest.fixture
-def uniswap_exchange(t, contract_tester, uni_token):
-    return contract_tester('Exchange/UniswapExchange.sol', args=[uni_token.address])
+    return contract_tester('Token/TestToken.sol', args=["SWAP Token", "SWAP", 18])
 
 @pytest.fixture
 def uniswap_factory(t, contract_tester):
@@ -66,3 +62,15 @@ def uniswap_factory(t, contract_tester):
 def exchange_abi(t, contract_tester):
     abi = json.load(open(EXCHANGE_ABI))
     return abi
+
+@pytest.fixture
+def uni_token_exchange(t, contract_tester, uniswap_factory, exchange_abi, uni_token):
+    t.s.mine()
+    uni_exchange_address = uniswap_factory.launchExchange(uni_token.address)
+    return t.ABIContract(t.s, exchange_abi, uni_exchange_address)
+
+@pytest.fixture
+def swap_token_exchange(t, contract_tester, uniswap_factory, exchange_abi, swap_token):
+    t.s.mine()
+    swap_token_address = uniswap_factory.launchExchange(swap_token.address)
+    return t.ABIContract(t.s, exchange_abi, swap_token_address)
