@@ -4,12 +4,12 @@ import "./UniswapExchange.sol";
 
 contract FactoryInterface {
     address[] public tokenList;
-    mapping(address => bool) exchangeExists;
-    mapping(address => address) tokenExchanges;
-    function launchExchange(address token) public returns (address exchange);
+    mapping(address => address) tokenToExchange;
+    mapping(address => address) exchangeToToken;
+    function launchExchange(address _token) public returns (address exchange);
     function getExchangeCount() public view returns (uint exchangeCount);
-    function tokenToExchangeLookup(address token) public view returns (address exchange);
-    function exchangeToTokenLookup(address token) public view returns (address exchange);
+    function tokenToExchangeLookup(address _token) public view returns (address exchange);
+    function exchangeToTokenLookup(address _exchange) public view returns (address token);
     event ExchangeLaunch(address indexed exchange, address indexed token);
 }
 

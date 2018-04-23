@@ -3,6 +3,11 @@ import pytest
 import json
 from ethereum.tools import _solidity, tester
 from ethereum.abi import ContractTranslator
+from ethereum import utils as ethereum_utils
+
+"""
+    run tests with:     pytest -v
+"""
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
 EXCHANGE_ABI = os.path.join(OWN_DIR, 'ABI/exchangeABI.json')
@@ -45,6 +50,10 @@ def assert_tx_failed():
             function_to_test()
         tester.s.revert(initial_state)
     return assert_tx_failed
+
+@pytest.fixture
+def utils():
+    return ethereum_utils
 
 @pytest.fixture
 def uni_token(t, contract_tester):
